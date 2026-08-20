@@ -485,6 +485,15 @@ class Qwen3MoEObserverHookConfig(MoETransformerObserverConfig):
 
 
 @dataclass
+class Qwen2MoEObserverHookConfig(MoETransformerObserverConfig):
+    # Qwen1.5-MoE (e.g. Qwen/Qwen1.5-MoE-A2.7B-Chat). Qwen2MoeSparseMoeBlock sets
+    # self.num_experts/self.top_k directly on the module, same as Qwen3's block,
+    # so the base class defaults (num_experts_attr_name="num_experts",
+    # top_k_attr_name="top_k") already match without overriding.
+    module_class_name_to_hook_regex: Optional[str] = "Qwen2MoeSparseMoeBlock"
+
+
+@dataclass
 class Llama4MoEObserverHookConfig(MoETransformerObserverConfig):
     module_class_name_to_hook_regex: Optional[str] = "Llama4TextMoe"
     fused_experts: bool = True  # Llama4 uses fused experts
@@ -527,6 +536,7 @@ class Glm44MoEObserverHookConfig(MoETransformerObserverConfig):
 OBSERVER_CONFIG_REGISTRY = {
     "Qwen3MoeForCausalLM": Qwen3MoEObserverHookConfig,
     "NonUniformQwen3MoeForCausalLM": Qwen3MoEObserverHookConfig,
+    "Qwen2MoeForCausalLM": Qwen2MoEObserverHookConfig,
     "Llama4ForCausalLM": Llama4MoEObserverHookConfig,
     "MixtralForCausalLM": MixtralMoEObserverHookConfig,
     "DeepseekV2ForCausalLM": DeepSeekMoEObserverHookConfig,

@@ -1268,7 +1268,7 @@ wheels = [
 
 [[package]]
 name = "evalplus"
-version = "0.1.0.dev819"
+version = "0.1.0.dev820"
 source = { editable = "third-party/evalplus" }
 dependencies = [
     { name = "anthropic" },
@@ -1644,16 +1644,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6b/b6/82c7e601d6d3c3278c40b7bd35e17e82aa227f050aa9f66cb7b7fce29471/fire-0.7.0.tar.gz", hash = "sha256:961550f07936eaf65ad1dc8360f2b2bf8408fad46abbfa4d2a3794f8d2a95cdf", size = 87189, upload-time = "2024-10-01T14:29:31.585Z" }
 
 [[package]]
-name = "flash-attn"
-version = "2.8.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "einops" },
-    { name = "torch" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/3b/b2/8d76c41ad7974ee264754709c22963447f7f8134613fd9ce80984ed0dab7/flash_attn-2.8.3.tar.gz", hash = "sha256:1e71dd64a9e0280e0447b8a0c2541bad4bf6ac65bdeaa2f90e51a9e57de0370d", size = 8447812, upload-time = "2025-08-15T08:28:12.911Z" }
-
-[[package]]
 name = "fonttools"
 version = "4.59.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1778,79 +1768,6 @@ http = [
 ]
 
 [[package]]
-name = "fuse"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "accelerate" },
-    { name = "crfm-helm" },
-    { name = "datasets" },
-    { name = "deepspeed" },
-    { name = "evalplus", extra = ["vllm"] },
-    { name = "evalscope" },
-    { name = "flash-attn" },
-    { name = "hatchling" },
-    { name = "jupyter" },
-    { name = "livecodebench" },
-    { name = "lm-eval", extra = ["api", "vllm"] },
-    { name = "matplotlib" },
-    { name = "python-dotenv" },
-    { name = "seaborn" },
-    { name = "torch" },
-    { name = "transformers" },
-    { name = "trl" },
-    { name = "umap-learn" },
-    { name = "vllm" },
-    { name = "wandb" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "kaleido" },
-    { name = "matplotlib" },
-    { name = "pandas" },
-    { name = "plotly" },
-    { name = "pytest" },
-    { name = "seaborn" },
-    { name = "umap-learn" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "accelerate", specifier = ">=1.7.0" },
-    { name = "crfm-helm", editable = "third-party/helm" },
-    { name = "datasets", specifier = ">=3.6.0,<4.0.0" },
-    { name = "deepspeed", specifier = ">=0.17.4" },
-    { name = "evalplus", extras = ["vllm"], editable = "third-party/evalplus" },
-    { name = "evalscope", editable = "third-party/evalscope" },
-    { name = "flash-attn", specifier = ">=2.8.3" },
-    { name = "hatchling", specifier = ">=1.27.0" },
-    { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "livecodebench", editable = "third-party/LiveCodeBench" },
-    { name = "lm-eval", extras = ["vllm", "api"], specifier = ">=0.4.9.1" },
-    { name = "matplotlib", specifier = ">=3.10.3" },
-    { name = "python-dotenv", specifier = ">=1.1.0" },
-    { name = "seaborn", specifier = ">=0.13.2" },
-    { name = "torch", specifier = "==2.7.1" },
-    { name = "transformers", specifier = "==4.55.0" },
-    { name = "trl", specifier = ">=0.21.0" },
-    { name = "umap-learn", specifier = ">=0.5.7" },
-    { name = "vllm", specifier = "==0.10.0" },
-    { name = "wandb", specifier = ">=0.21.1" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "kaleido", specifier = ">=1.0.0" },
-    { name = "matplotlib", specifier = ">=3.10.3" },
-    { name = "pandas", specifier = ">=2.3.0" },
-    { name = "plotly", specifier = ">=6.1.2" },
-    { name = "pytest", specifier = ">=8.4.1" },
-    { name = "seaborn", specifier = ">=0.13.2" },
-    { name = "umap-learn", specifier = ">=0.5.7" },
-]
-
-[[package]]
 name = "gguf"
 version = "0.17.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1966,6 +1883,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/56/be/217a598a818567b28e859ff087f347475c807a5649296fb5a817c58dacef/google-auth-httplib2-0.2.0.tar.gz", hash = "sha256:38aa7badf48f974f1eb9861794e9c0cb2a0511a4ec0679b1f886d108f5640e05", size = 10842, upload-time = "2023-12-12T17:40:30.722Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/be/8a/fe34d2f3f9470a27b01c9e76226965863f153d5fbe276f83608562e49c04/google_auth_httplib2-0.2.0-py2.py3-none-any.whl", hash = "sha256:b65a0a2123300dd71281a7bf6e64d65a0759287df52729bdd1ae2e47dc311a3d", size = 9253, upload-time = "2023-12-12T17:40:13.055Z" },
+]
+
+[[package]]
+name = "google-auth-oauthlib"
+version = "1.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-auth" },
+    { name = "requests-oauthlib" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/70/18/90c7fac516e63cf2058166fce0c88c353647c677b51cc036c09c49bb5cbb/google_auth_oauthlib-1.4.0.tar.gz", hash = "sha256:18b5e28880eb8eba9065c436becdc0ee8e4b59117a73a510679c82f70cd363d2", size = 21675, upload-time = "2026-05-07T08:03:47.816Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/37/d3/d7dff0d58a9e9244b48044bfb6a898bfcc8ecc42e0031d1bebc695344725/google_auth_oauthlib-1.4.0-py3-none-any.whl", hash = "sha256:251314f213a9ee46a5ae73988e84fd7cca8bb68e7ecf4bfd45940f9e7f51d070", size = 19261, upload-time = "2026-05-07T08:02:13.798Z" },
 ]
 
 [[package]]
@@ -3887,6 +3817,15 @@ wheels = [
 ]
 
 [[package]]
+name = "oauthlib"
+version = "3.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/5f/19930f824ffeb0ad4372da4812c50edbd1434f678c90c2733e1188edfc63/oauthlib-3.3.1.tar.gz", hash = "sha256:0f0f8aa759826a193cf66c12ea1af1637f87b9b4622d46e866952bb022e538c9", size = 185918, upload-time = "2025-06-19T22:48:08.269Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/be/9c/92789c596b8df838baa98fa71844d84283302f7604ed565dafe5a6b5041a/oauthlib-3.3.1-py3-none-any.whl", hash = "sha256:88119c938d2b8fb88561af5f6ee0eec8cc8d552b7bb1f712743136eb7523b7a1", size = 160065, upload-time = "2025-06-19T22:48:06.508Z" },
+]
+
+[[package]]
 name = "openai"
 version = "1.90.0"
 source = { registry = "https://pypi.org/simple" }
@@ -4954,6 +4893,83 @@ cgraph = [
 ]
 
 [[package]]
+name = "reap"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "accelerate" },
+    { name = "crfm-helm" },
+    { name = "datasets" },
+    { name = "deepspeed" },
+    { name = "evalplus", extra = ["vllm"] },
+    { name = "evalscope" },
+    { name = "hatchling" },
+    { name = "jupyter" },
+    { name = "livecodebench" },
+    { name = "lm-eval", extra = ["api", "vllm"] },
+    { name = "matplotlib" },
+    { name = "python-dotenv" },
+    { name = "seaborn" },
+    { name = "torch" },
+    { name = "transformers" },
+    { name = "trl" },
+    { name = "umap-learn" },
+    { name = "vllm" },
+    { name = "wandb" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "google-api-python-client" },
+    { name = "google-auth-httplib2" },
+    { name = "google-auth-oauthlib" },
+    { name = "kaleido" },
+    { name = "matplotlib" },
+    { name = "pandas" },
+    { name = "plotly" },
+    { name = "pytest" },
+    { name = "seaborn" },
+    { name = "umap-learn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "accelerate", specifier = ">=1.7.0" },
+    { name = "crfm-helm", editable = "third-party/helm" },
+    { name = "datasets", specifier = ">=3.6.0,<4.0.0" },
+    { name = "deepspeed", specifier = ">=0.17.4" },
+    { name = "evalplus", extras = ["vllm"], editable = "third-party/evalplus" },
+    { name = "evalscope", editable = "third-party/evalscope" },
+    { name = "hatchling", specifier = ">=1.27.0" },
+    { name = "jupyter", specifier = ">=1.1.1" },
+    { name = "livecodebench", editable = "third-party/LiveCodeBench" },
+    { name = "lm-eval", extras = ["vllm", "api"], specifier = ">=0.4.9.1" },
+    { name = "matplotlib", specifier = ">=3.10.3" },
+    { name = "python-dotenv", specifier = ">=1.1.0" },
+    { name = "seaborn", specifier = ">=0.13.2" },
+    { name = "torch", specifier = "==2.7.1" },
+    { name = "transformers", specifier = "==4.55.0" },
+    { name = "trl", specifier = ">=0.21.0" },
+    { name = "umap-learn", specifier = ">=0.5.7" },
+    { name = "vllm", specifier = "==0.10.0" },
+    { name = "wandb", specifier = ">=0.21.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "google-api-python-client" },
+    { name = "google-auth-httplib2" },
+    { name = "google-auth-oauthlib" },
+    { name = "kaleido", specifier = ">=1.0.0" },
+    { name = "matplotlib", specifier = ">=3.10.3" },
+    { name = "pandas", specifier = ">=2.3.0" },
+    { name = "plotly", specifier = ">=6.1.2" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "seaborn", specifier = ">=0.13.2" },
+    { name = "umap-learn", specifier = ">=0.5.7" },
+]
+
+[[package]]
 name = "referencing"
 version = "0.36.2"
 source = { registry = "https://pypi.org/simple" }
@@ -5030,6 +5046,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e1/0a/929373653770d8a0d7ea76c37de6e41f11eb07559b103b1c02cafb3f7cf8/requests-2.32.4.tar.gz", hash = "sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422", size = 135258, upload-time = "2025-06-09T16:43:07.34Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7c/e4/56027c4a6b4ae70ca9de302488c5ca95ad4a39e190093d6c1a8ace08341b/requests-2.32.4-py3-none-any.whl", hash = "sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c", size = 64847, upload-time = "2025-06-09T16:43:05.728Z" },
+]
+
+[[package]]
+name = "requests-oauthlib"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "oauthlib" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/f2/05f29bc3913aea15eb670be136045bf5c5bbf4b99ecb839da9b422bb2c85/requests-oauthlib-2.0.0.tar.gz", hash = "sha256:b3dffaebd884d8cd778494369603a9e7b58d29111bf6b41bdc2dcd87203af4e9", size = 55650, upload-time = "2024-03-22T20:32:29.939Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3b/5d/63d4ae3b9daea098d5d6f5da83984853c1bbacd5dc826764b249fe119d24/requests_oauthlib-2.0.0-py2.py3-none-any.whl", hash = "sha256:7dd8a5c40426b779b0868c404bdef9768deccf22749cde15852df527e6269b36", size = 24179, upload-time = "2024-03-22T20:32:28.055Z" },
 ]
 
 [[package]]

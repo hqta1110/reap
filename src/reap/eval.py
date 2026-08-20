@@ -25,14 +25,20 @@ logging.basicConfig(level=logging.INFO)
 
 
 def get_original_model_name(model_name: str) -> Tuple[str, bool]:
+    # NOTE: matched by substring with the first hit winning (see loop below), so
+    # any key that is a prefix of another must come AFTER the longer one --
+    # otherwise e.g. "Qwen3-30B-A3B" swallows "Qwen3-30B-A3B-Instruct-2507" and
+    # that model's results get served/reported under the wrong base model.
     original_model_name_map = {
         "Mixtral-8x7B-Instruct-v0.1": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+        "Qwen3-Coder-30B-A3B-Instruct": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+        "Qwen3-30B-A3B-Instruct-2507": "Qwen/Qwen3-30B-A3B-Instruct-2507",
         "Qwen3-30B-A3B": "Qwen/Qwen3-30B-A3B",
         "Llama-4-Scout-17B-16E-Instruct": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
         "ERNIE-4.5-21B-A3B-PT": "baidu/ERNIE-4.5-21B-A3B-PT",
         "DeepSeek-V2-Lite-Chat": "deepseek-ai/DeepSeek-V2-Lite-Chat",
-        "Qwen3-Coder-30B-A3B-Instruct": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
-        "Qwen3-30B-A3B-Instruct-2507": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+        "Qwen1.5-MoE-A2.7B-Chat": "Qwen/Qwen1.5-MoE-A2.7B-Chat",
+        "Qwen1.5-MoE-A2.7B": "Qwen/Qwen1.5-MoE-A2.7B",
         "gpt-oss-20b": "openai/gpt-oss-20b",
         "gpt-oss-120b": "openai/gpt-oss-120b",
         "GLM-4.5-Air": "zai-org/GLM-4.5-Air",
@@ -58,14 +64,25 @@ def get_original_model_name(model_name: str) -> Tuple[str, bool]:
     return original_model, uncompressed_model
 
 
-def wait_for_server(base_url, timeout=1200, check_interval=5):
-    """Wait for the server to be ready by checking the health endpoint."""
+def wait_for_server(base_url, timeout=1200, check_interval=5, process=None):
+    """Wait for the server to be ready by checking the health endpoint.
+
+    If ``process`` is given, its exit is treated as a hard failure: a crashed
+    server (e.g. a NCCL init error in a worker) otherwise looks identical to a
+    slow one, and we'd poll a dead endpoint for the full ``timeout``.
+    """
     health_url = f"{base_url}/health"
     start_time = time.time()
 
     logger.info(f"Waiting for server to be ready at {health_url}")
 
     while time.time() - start_time < timeout:
+        if process is not None and process.poll() is not None:
+            raise RuntimeError(
+                f"vLLM server exited with code {process.returncode} after "
+                f"{time.time() - start_time:.0f}s without becoming ready. "
+                f"See the server log for the root cause."
+            )
         try:
             response = requests.get(health_url, timeout=10)
             if response.status_code == 200:
@@ -107,7 +124,7 @@ def start_server(model_name, model_args, eval_args, seed, log_file, port):
 
     hf_overrides = {}
     max_num_seqs = 32
-    max_model_len = 32768
+    max_model_len = 8192
     gpu_memory_utilization = 0.90
     if model_args.num_experts_per_tok_override is not None:
         logger.info(
@@ -168,7 +185,7 @@ def start_server(model_name, model_args, eval_args, seed, log_file, port):
 
     base_url = f"http://0.0.0.0:{port}"
 
-    wait_for_server(base_url)
+    wait_for_server(base_url, process=process)
 
     return base_url, process
 
@@ -211,7 +228,7 @@ def run_evaluate(model_args, results_dir, eval_args, seed):
             "tensor_parallel_size": num_gpus,
             "gpu_memory_utilization": 0.85,
             "num_concurrent": 32,
-            "timeout": 1200,
+            "timeout": 300,
             "max_retries": 10,
             "trust_remote_code": True,
         }
@@ -258,9 +275,13 @@ def run_evaluate(model_args, results_dir, eval_args, seed):
                     print(make_table(results, "groups"))
                     print(make_table(results, "groups"), file=f)
             with open(f"{results_file_base_name}.json", "w") as f:
-                json.dump(results, f)
+                # default=str: lm-eval's per-task configs carry non-serializable
+                # entries (e.g. process_docs function refs). Without it json.dump
+                # raises partway through and leaves a TRUNCATED file behind --
+                # which scripts/report_evals.py then fails to parse.
+                json.dump(results, f, default=str)
         except Exception as e:
-            pass
+            logger.error(f"Failed to write lm-eval results: {e}")
         logger.info(f"Finished evaluating lm-eval")
 
     try:
@@ -288,6 +309,11 @@ def run_evaluate(model_args, results_dir, eval_args, seed):
                         else 0.0,
                         enable_thinking=enable_thinking,
                         parallel_tasks=eval_args.parallel_tasks,
+                        # NOTE: this fork's run_codegen() has no max_new_tokens
+                        # passthrough (no **kwargs in its signature) -- the
+                        # actual completion budget is set by patching
+                        # third-party/evalplus/evalplus/config.py's
+                        # MAX_NEW_TOKENS constant directly, not here.
                     )
                 else:
                     evalplus_evaluator(
@@ -329,7 +355,7 @@ def run_evaluate(model_args, results_dir, eval_args, seed):
                 evaluate=True,
                 timeout=120,
                 local_model_path=model_name if not uncompressed_model else None,
-                max_tokens=16384,
+                max_tokens=2048,  # matches EvalArgs/start_server's max_model_len=4096
             )
             logger.info(f"Running LiveCodeBench with args: {lcb_args}")
             lcb_main(lcb_args)
@@ -378,7 +404,7 @@ def run_evaluate(model_args, results_dir, eval_args, seed):
                 model=model_name,
                 generation_config={
                     "do_sample": False,
-                    "max_new_tokens": 16384,
+                    "max_new_tokens": 2048,  # matches EvalArgs/start_server's max_model_len=4096
                     "chat_template_kwargs": {"enable_thinking": False},
                 },
                 datasets=[
@@ -387,7 +413,7 @@ def run_evaluate(model_args, results_dir, eval_args, seed):
                 ],
                 api_url=f"{server_endpoint}/v1",
                 api_key="EMPTY",
-                timeout=3600,
+                timeout=300,
                 work_dir=results_dir / "evalscope_results",
                 dataset_args={
                     "gsm8k": {

@@ -9,6 +9,8 @@ from transformers import (
     DeepseekV2Config,
     Ernie4_5_MoeConfig,
     Glm4MoeConfig,
+    Qwen2MoeConfig,
+    Qwen2MoeForCausalLM,
     Qwen3MoeConfig,
     Qwen3MoeForCausalLM,
 )
@@ -72,6 +74,28 @@ def _make_qwen3_model():
             num_experts=3,
             num_experts_per_tok=1,
             norm_topk_prob=False,
+        )
+    )
+    model.eval()
+    return model
+
+
+def _make_qwen2moe_model():
+    model = Qwen2MoeForCausalLM(
+        Qwen2MoeConfig(
+            vocab_size=32,
+            hidden_size=16,
+            intermediate_size=32,
+            moe_intermediate_size=8,
+            shared_expert_intermediate_size=8,
+            num_hidden_layers=3,
+            num_attention_heads=2,
+            num_key_value_heads=1,
+            num_experts=3,
+            num_experts_per_tok=1,
+            norm_topk_prob=False,
+            decoder_sparse_step=1,
+            mlp_only_layers=[],
         )
     )
     model.eval()
@@ -236,6 +260,11 @@ ARCHITECTURE_CASES = [
         _make_qwen3_model,
         _make_mock_batches,
         id="qwen3",
+    ),
+    pytest.param(
+        _make_qwen2moe_model,
+        _make_mock_batches,
+        id="qwen2moe",
     ),
     pytest.param(
         _make_glm_model,

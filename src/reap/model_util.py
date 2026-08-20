@@ -27,6 +27,22 @@ MODEL_ATTRS = {
         "num_experts": "num_experts",
         "num_experts_per_tok": "num_experts_per_tok",
     },
+    "Qwen2MoeForCausalLM": {
+        # Qwen1.5-MoE (e.g. Qwen/Qwen1.5-MoE-A2.7B-Chat). Same routed-expert MLP
+        # shape as Qwen3MoeForCausalLM (SwiGLU gate/up/down + `gate` router Linear);
+        # the shared_expert/shared_expert_gate on this architecture are left
+        # untouched by pruning, same as REAP already does for GLM4Moe/Ernie4.5's
+        # shared experts (no shared-expert key exists anywhere in MODEL_ATTRS).
+        "moe_block": "mlp",
+        "gate_proj": "gate_proj",
+        "up_proj": "up_proj",
+        "down_proj": "down_proj",
+        "experts": "experts",
+        "fused": False,
+        "router": "gate",
+        "num_experts": "num_experts",
+        "num_experts_per_tok": "num_experts_per_tok",
+    },
     "NonUniformQwen3MoeForCausalLM": {
         "moe_block": "mlp",
         "gate_proj": "gate_proj",

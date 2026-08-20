@@ -225,6 +225,11 @@ def main():
         trust_remote_code=True,
         local_files_only=True,
     )
+    # Calibration is a prefill-only forward pass -- no KV cache needed. Disabling
+    # it avoids stale-Cache-API calls in trust_remote_code modeling (DeepSeek-V2
+    # was written for an older transformers). Harmless for models that work with
+    # cache on. Does NOT affect vLLM serving (which loads config fresh).
+    model.config.use_cache = False
     # record activations or load previously recorded activations
     logger.info(
         f"Running observer to collect activation data for model {model_args.model_name} on dataset {ds_args.dataset_name}."
@@ -312,13 +317,13 @@ def main():
 
         dump_args_to_yaml(
             pruned_model_dir,
-            reap_args,
-            ds_args,
-            obs_args,
-            model_args,
-            eval_args,
-            prune_args,
-            cluster_args,
+            reap_args=reap_args,
+            ds_args=ds_args,
+            obs_args=obs_args,
+            model_args=model_args,
+            eval_args=eval_args,
+            prune_args=prune_args,
+            cluster_args=cluster_args,
         )
 
     # eval
