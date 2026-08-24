@@ -132,6 +132,20 @@ def prune(
                     router.e_score_correction_bias.data[retained_expert_indicies]
                 )
             setattr(moe, model_attrs["router"], router)
+        elif model_attrs.get("grouped"):
+            # Qwen3.5-MoE grouped-fused experts: router is `gate` (a Qwen3_5MoeTopKRouter
+            # with a .weight param, no out_features), experts hold stacked tensors.
+            idx = retained_expert_indicies
+            moe.experts.gate_up_proj.data = moe.experts.gate_up_proj.data[idx]
+            moe.experts.down_proj.data = moe.experts.down_proj.data[idx]
+            if hasattr(moe.experts, "num_experts"):
+                moe.experts.num_experts = len(idx)
+            router = getattr(moe, model_attrs["router"])   # `gate`
+            router.weight.data = router.weight.data[idx]
+            if getattr(router, "bias", None) is not None:
+                router.bias.data = router.bias.data[idx]
+            if hasattr(router, "num_experts"):
+                router.num_experts = len(idx)
         else:
             # prune fused experts, only tested for llama-4
             moe.experts.gate_up_proj.data = moe.experts.gate_up_proj[
@@ -147,7 +161,13 @@ def prune(
     # patch config and dump
     logger.info("Saving pruned model...")
     retained_experts = len(retained_expert_indicies)
-    setattr(model.config, model_attrs["num_experts"], retained_experts)
+    # num_experts may live on a nested sub-config (multimodal text_config).
+    _cfg_target = model.config
+    _cfg_path = model_attrs.get("num_experts_cfg_path")
+    if _cfg_path:
+        for part in _cfg_path.split("."):
+            _cfg_target = getattr(_cfg_target, part)
+    setattr(_cfg_target, model_attrs["num_experts"], retained_experts)
     if model.__class__.__name__ == "Ernie4_5_MoeForCausalLM":  # remote-code verson
         model.config.moe_capacity = [
             retained_experts,
@@ -217,14 +237,27 @@ def main():
     # get local patched model if req'd
     model_name = patched_model_map(model_args.model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-    # load model
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        device_map="auto",
-        torch_dtype="auto",
-        trust_remote_code=True,
-        local_files_only=True,
-    )
+    # load model. Multimodal archs (e.g. Qwen3.5-MoE) are ForConditionalGeneration,
+    # which AutoModelForCausalLM won't map -- load the explicit class so the text
+    # tower (with its MoE blocks) is available for observation/pruning; the vision
+    # tower is loaded but dormant (text-only calibration) and passed through on save.
+    from transformers import AutoConfig
+    _arch = (getattr(AutoConfig.from_pretrained(model_name, trust_remote_code=True),
+                     "architectures", None) or [None])[0]
+    if _arch == "Qwen3_5MoeForConditionalGeneration":
+        from transformers import Qwen3_5MoeForConditionalGeneration
+        model = Qwen3_5MoeForConditionalGeneration.from_pretrained(
+            model_name, device_map="auto", torch_dtype="auto",
+            trust_remote_code=True, local_files_only=True,
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            device_map="auto",
+            torch_dtype="auto",
+            trust_remote_code=True,
+            local_files_only=True,
+        )
     # Calibration is a prefill-only forward pass -- no KV cache needed. Disabling
     # it avoids stale-Cache-API calls in trust_remote_code modeling (DeepSeek-V2
     # was written for an older transformers). Harmless for models that work with

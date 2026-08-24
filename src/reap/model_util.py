@@ -65,6 +65,35 @@ MODEL_ATTRS = {
         "num_experts": "num_local_experts",
         "num_experts_per_tok": "num_experts_per_tok",
     },
+    "Qwen3_5MoeForCausalLM": {
+        # Qwen3.5-MoE text tower. Grouped-fused experts (Qwen3_5MoeExperts holds
+        # stacked gate_up_proj/down_proj); router is `gate`; num_experts on config.
+        "moe_block": "mlp",
+        "gate_proj": "gate_up_proj",
+        "up_proj": "gate_up_proj",
+        "down_proj": "down_proj",
+        "experts": "experts",
+        "fused": True,
+        "grouped": True,          # dedicated slice path (router=`gate`, no out_features)
+        "router": "gate",
+        "num_experts": "num_experts",
+        "num_experts_per_tok": "num_experts_per_tok",
+    },
+    "Qwen3_5MoeForConditionalGeneration": {
+        # Full multimodal model: text decoder layers nest under
+        # model.language_model.layers, and num_experts lives on config.text_config.
+        "moe_block": "mlp",
+        "gate_proj": "gate_up_proj",
+        "up_proj": "gate_up_proj",
+        "down_proj": "down_proj",
+        "experts": "experts",
+        "fused": True,
+        "grouped": True,
+        "router": "gate",
+        "num_experts": "num_experts",
+        "num_experts_cfg_path": "text_config",   # nested config for num_experts
+        "layers_path": "model.language_model.layers",
+    },
     "MixtralForCausalLM": {
         "moe_block": "block_sparse_moe",
         "gate_proj": "w3",
@@ -135,8 +164,14 @@ MODEL_ATTRS = {
 
 
 def get_moe(model, layer):
-    moe_attr_name = MODEL_ATTRS.get(model.__class__.__name__)["moe_block"]
-    return getattr(model.model.layers[layer], moe_attr_name)
+    attrs = MODEL_ATTRS.get(model.__class__.__name__)
+    moe_attr_name = attrs["moe_block"]
+    # Multimodal models (e.g. Qwen3.5-MoE ForConditionalGeneration) nest the text
+    # decoder layers under a submodule; layers_path names how to reach them.
+    layers = model
+    for part in attrs.get("layers_path", "model.layers").split("."):
+        layers = getattr(layers, part)
+    return getattr(layers[layer], moe_attr_name)
 
 
 def assert_merge(model, merged_moe, cluster_label):

@@ -26,6 +26,35 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+@torch.no_grad()
+def _grouped_fused_activations(module, flat_input, num_experts, top_k):
+    """All-expert activations + router logits for a grouped-fused MoE block
+    (Qwen3.5-MoE's ``Qwen3_5MoeSparseMoeBlock``), where the experts live in one
+    module holding stacked weights instead of a ``ModuleList``.
+
+    Faithful to Qwen3_5MoeExperts.forward, but UNWEIGHTED (REAP applies the router
+    weights itself downstream) and for every expert (not just the routed ones):
+        gate, up = linear(x, gate_up_proj[e]).chunk(2);  down(act(gate) * up)
+    Router logits recomputed from the gate weight: ``x @ gate.weight.T``.
+
+    Returns (router_logits[T,E], selected_experts[T,k], activations[E,T,H]).
+    """
+    experts = module.experts
+    W_gu = experts.gate_up_proj            # (E, 2*I, H)
+    W_dn = experts.down_proj               # (E, H, I)
+    dev = W_gu.device
+    x = flat_input.to(dev)                 # (T, H)  (device_map may place layers apart)
+
+    router_logits = torch.nn.functional.linear(x, module.gate.weight.to(dev))  # (T, E)
+    selected_experts = torch.topk(router_logits, top_k, dim=-1).indices          # (T, k)
+
+    gu = torch.einsum("th,eoh->eto", x, W_gu)          # (E, T, 2*I)
+    gate, up = gu.chunk(2, dim=-1)                       # (E, T, I) each
+    h = experts.act_fn(gate) * up                        # (E, T, I)
+    activations = torch.einsum("eti,ehi->eth", h, W_dn)  # (E, T, H)
+    return router_logits, selected_experts, activations
+
+
 class BaseTransformerObserverHookConfig:
     state_attr_name: str = "hook_state"
     hook_attr_name: str = "hooks"
@@ -220,6 +249,12 @@ class MoETransformerObserverConfig(BaseTransformerObserverHookConfig):
     num_experts_attr_name: str = "num_experts"
     top_k_attr_name: str = "top_k"
     fused_experts: bool = False
+    # grouped_fused_experts: experts are a single module holding stacked
+    # gate_up_proj/down_proj tensors (e.g. Qwen3.5-MoE's Qwen3_5MoeExperts), so
+    # neither the per-expert loop nor the Llama4 fused path applies. The hook
+    # recomputes router_logits from the gate weight and all-expert activations by
+    # batched matmul over the stacked expert weights. See _grouped_fused_activations.
+    grouped_fused_experts: bool = False
     distance_measure: str = "angular"
     renormalize_router_weights: bool = False
     record_pruning_metrics_only: bool = False
@@ -348,9 +383,11 @@ class MoETransformerObserver(BaseTransformerObserver):
                 # No mask provided - treat all tokens as valid
                 flat_mask = None
 
-            activations = torch.zeros((num_experts, *flat_input.shape), device=device)
-
-            if self.hook_config.fused_experts:
+            if self.hook_config.grouped_fused_experts:
+                router_logits, selected_experts, activations = \
+                    _grouped_fused_activations(module, flat_input, num_experts, top_k)
+            elif self.hook_config.fused_experts:
+                activations = torch.zeros((num_experts, *flat_input.shape), device=device)
                 _, router_scores = output  # (num_experts, total_tokens)
                 router_logits = module.router(flat_input)  # (total_tokens, num_experts)
                 _, selected_experts = torch.topk(router_logits, top_k, dim=-1)
@@ -372,6 +409,7 @@ class MoETransformerObserver(BaseTransformerObserver):
                 activations = routed_out.view(num_experts, *flat_input.shape)
 
             else:  # loop based MoE execution
+                activations = torch.zeros((num_experts, *flat_input.shape), device=device)
                 # ernie returns combined_output, combine_weights, router_loss, gate_logits
                 *_, router_logits = output  # (total_tokens, num_experts)
                 _, selected_experts = torch.topk(router_logits, top_k, dim=-1)
@@ -505,6 +543,17 @@ class MixtralMoEObserverHookConfig(MoETransformerObserverConfig):
 
 
 @dataclass
+class Qwen3_5MoEObserverHookConfig(MoETransformerObserverConfig):
+    # Qwen3.5-MoE text tower. The sparse block exposes num_experts/top_k on its
+    # `gate` (Qwen3_5MoeTopKRouter) and stacks experts in a single Qwen3_5MoeExperts
+    # module -> grouped-fused path.
+    module_class_name_to_hook_regex: Optional[str] = "Qwen3_5MoeSparseMoeBlock"
+    num_experts_attr_name: str = "gate.num_experts"
+    top_k_attr_name: str = "gate.top_k"
+    grouped_fused_experts: bool = True
+
+
+@dataclass
 class DeepSeekMoEObserverHookConfig(MoETransformerObserverConfig):
     module_class_name_to_hook_regex: Optional[str] = "DeepseekV2MoE"
     num_experts_attr_name: str = "experts_per_rank"  # only for ep=1!
@@ -535,6 +584,8 @@ class Glm44MoEObserverHookConfig(MoETransformerObserverConfig):
 
 OBSERVER_CONFIG_REGISTRY = {
     "Qwen3MoeForCausalLM": Qwen3MoEObserverHookConfig,
+    "Qwen3_5MoeForCausalLM": Qwen3_5MoEObserverHookConfig,
+    "Qwen3_5MoeForConditionalGeneration": Qwen3_5MoEObserverHookConfig,
     "NonUniformQwen3MoeForCausalLM": Qwen3MoEObserverHookConfig,
     "Qwen2MoeForCausalLM": Qwen2MoEObserverHookConfig,
     "Llama4ForCausalLM": Llama4MoEObserverHookConfig,

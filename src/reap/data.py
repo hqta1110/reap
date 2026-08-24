@@ -19,6 +19,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import uuid
 import json
+import os
 import re
 import random
 import logging
@@ -27,7 +28,10 @@ import logging
 import torch
 from datasets import Dataset, DatasetDict, load_dataset
 from transformers import AutoTokenizer, BatchEncoding
-from vllm import TokensPrompt
+try:                                        # vLLM only needed on the generation path
+    from vllm import TokensPrompt           # (return_vllm_tokens_prompt=True); the REAP
+except Exception:                           # observer/prune path never constructs it, so a
+    TokensPrompt = None                     # transformers-only env (qwen3.6) can skip vLLM.
 
 
 logger = logging.getLogger(__name__)
@@ -213,6 +217,17 @@ def _load_raw_dataset(dataset_name, split, subset=None):
             file_url = "https://huggingface.co/datasets/allenai/c4/resolve/main/en/c4-train.00000-of-01024.json.gz"
             return load_dataset(
                 "json", data_files={"train": file_url}, split="train", streaming=False
+            )
+        elif dataset_name == "HuggingFaceFW/fineweb-edu":
+            # The HF hub copy is not cached (huge, config-gated); reuse the local
+            # 1200-row calibration parquet SERE already prepared for FineWeb-Edu.
+            return load_dataset(
+                "parquet",
+                data_files=os.environ.get(
+                    "REAP_FINEWEB_PARQUET",
+                    "/home/PC/SERE/calibration/data/fineweb_edu_calibration.parquet",
+                ),
+                split="train",
             )
         else:
             load_kwargs = {}
@@ -730,6 +745,16 @@ class C4LMDataset(LMDatasetProcessor):
         return sample
 
 
+class FineWebEduLMDataset(LMDatasetProcessor):
+    """FineWeb-Edu: plain-text LM calibration (single ``text`` column)."""
+
+    category_field: str = None
+
+    @staticmethod
+    def _map_fn(sample: dict[str, any]) -> dict[str, any]:
+        return sample
+
+
 class CodeAlpacaChatDataset(ChatDatasetProcessor):
     """Dataset for evol-codealpaca-v1."""
 
@@ -968,6 +993,7 @@ DATASET_REGISTRY: dict[str, BaseDatasetProcessor] = {
     "cais/mmlu": MmluChatDataset,
     "ise-uiuc/Magicoder-Evol-Instruct-110K": MagicoderEvolInstructChatDataset,
     "allenai/c4": C4LMDataset,
+    "HuggingFaceFW/fineweb-edu": FineWebEduLMDataset,
     "theblackcat102/evol-codealpaca-v1": CodeAlpacaChatDataset,
     "euclaise/WritingPrompts_curated": WritingPromptsChatDataset,
     "allenai/tulu-3-sft-personas-math": PersonasMathChatDataset,
