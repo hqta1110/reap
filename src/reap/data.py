@@ -240,6 +240,19 @@ def _load_raw_dataset(dataset_name, split, subset=None):
         )
 
 
+# gemma-4's tokenizer reports model_max_length as ~1e30, meaning "no limit".
+# Handing that to the rust tokenizer raises OverflowError, so treat anything
+# absurd as no-truncation and fall back to the length the caller asked for.
+_SENTINEL_MAX_LEN = int(1e15)
+
+
+def _safe_max_len(tokenizer, fallback=None):
+    n = getattr(tokenizer, "model_max_length", None)
+    if n is None or n > _SENTINEL_MAX_LEN:
+        return fallback
+    return n
+
+
 def load_category_batches(
     dataset_name,
     split,
@@ -327,7 +340,7 @@ class BaseDatasetProcessor(ABC):
                 )
             dataset = dataset[split]
         if max_input_len is None:
-            max_input_len = tokenizer.model_max_length
+            max_input_len = _safe_max_len(tokenizer)
             logger.warning(
                 f"max_input_len is set to {max_input_len} as per tokenizer's "
                 f"model_max_length. This will be used for truncation.",
@@ -617,7 +630,7 @@ class ChatDatasetProcessor(BaseDatasetProcessor):
         return self.tokenizer(
             chat_sample,
             truncation=self.truncate,
-            max_length=self.tokenizer.model_max_length if self.truncate else None,
+            max_length=_safe_max_len(self.tokenizer, self.max_input_len) if self.truncate else None,
             return_tensors="pt",
         )["input_ids"]
 
@@ -653,7 +666,7 @@ class LMDatasetProcessor(BaseDatasetProcessor):
         return self.tokenizer(
             sample[self.text_field],
             truncation=self.truncate,
-            max_length=self.tokenizer.model_max_length if self.truncate else None,
+            max_length=_safe_max_len(self.tokenizer, self.max_input_len) if self.truncate else None,
             return_tensors="pt",
         )["input_ids"]
 

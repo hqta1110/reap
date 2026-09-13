@@ -33,7 +33,8 @@ from reap.cluster import (
     dynamic_frequency_penalized_clustering,
 )
 from reap.model_util import get_moe, assert_merge, MODEL_ATTRS, patched_model_map, get_super_expert_indices
-from reap.eval import run_evaluate
+# NOTE: reap.eval pulls in vllm/lm_eval/evalplus at import time; only needed for
+# --do-eval. Imported lazily below so re-slicing works without those heavy deps.
 import shutil
 
 logger = logging.getLogger(__name__)
@@ -140,12 +141,21 @@ def prune(
             moe.experts.down_proj.data = moe.experts.down_proj.data[idx]
             if hasattr(moe.experts, "num_experts"):
                 moe.experts.num_experts = len(idx)
-            router = getattr(moe, model_attrs["router"])   # `gate`
+            router = getattr(moe, model_attrs["router"])   # `gate`, or gemma-4's `router`
+            if not hasattr(router, "weight") and hasattr(router, "proj"):
+                slice_wrapped_router(router, idx)
+                continue
             router.weight.data = router.weight.data[idx]
             if getattr(router, "bias", None) is not None:
                 router.bias.data = router.bias.data[idx]
             if hasattr(router, "num_experts"):
                 router.num_experts = len(idx)
+            # GLM-Lite's noaux_tc router carries a per-expert score-correction
+            # buffer; leaving it at full width silently mis-scores routing.
+            if hasattr(router, "e_score_correction_bias"):
+                router.e_score_correction_bias.data = (
+                    router.e_score_correction_bias.data[idx]
+                )
         else:
             # prune fused experts, only tested for llama-4
             moe.experts.gate_up_proj.data = moe.experts.gate_up_proj[
@@ -183,6 +193,27 @@ def prune(
         f"Pruned model saved to {pruned_model_dir} in {end - start:.2f} seconds"
     )
     return pruned_model_dir
+
+
+def slice_wrapped_router(router, idx):
+    """Keep only experts `idx` on a router that wraps its projection in a child.
+
+    gemma-4's Gemma4TextRouter has no `.weight` of its own: it holds a `proj`
+    Linear and a PER-EXPERT scale vector applied to the top-k weights. Slicing the
+    projection while leaving per_expert_scale at full width mis-scales routing on
+    the pruned model, and nothing anywhere raises -- the checkpoint just scores
+    worse. Everything this touches is asserted in test_gemma4_router_slice.py.
+    """
+    router.proj.weight.data = router.proj.weight.data[idx]
+    router.proj.out_features = len(idx)
+    if getattr(router.proj, "bias", None) is not None:
+        router.proj.bias.data = router.proj.bias.data[idx]
+    if hasattr(router, "per_expert_scale"):
+        router.per_expert_scale.data = router.per_expert_scale.data[idx]
+    cfg = getattr(router, "config", None)
+    if cfg is not None and hasattr(cfg, "num_experts"):
+        cfg.num_experts = len(idx)
+    return router
 
 
 def get_pruned_model_dir(
@@ -244,16 +275,25 @@ def main():
     from transformers import AutoConfig
     _arch = (getattr(AutoConfig.from_pretrained(model_name, trust_remote_code=True),
                      "architectures", None) or [None])[0]
-    if _arch == "Qwen3_5MoeForConditionalGeneration":
-        from transformers import Qwen3_5MoeForConditionalGeneration
-        model = Qwen3_5MoeForConditionalGeneration.from_pretrained(
+    if _arch and _arch.endswith("ForConditionalGeneration"):
+        # Multimodal archs (Qwen3.5-MoE, gemma-4) are not in the CausalLM mapping.
+        # Resolve the class by name so a new one needs no branch here.
+        import transformers as _tf
+        _cls = getattr(_tf, _arch)
+        model = _cls.from_pretrained(
             model_name, device_map="auto", torch_dtype="auto",
             trust_remote_code=True, local_files_only=True,
         )
     else:
+        import torch as _t
+        # Reserve activation headroom per GPU so the observer's (E,T,I) all-experts
+        # tensor doesn't OOM a weight-packed shard (device_map=auto otherwise fills
+        # each 40GB card to the brim with weights alone).
+        _mm = {i: "32GiB" for i in range(_t.cuda.device_count())}
         model = AutoModelForCausalLM.from_pretrained(
             model_name,
             device_map="auto",
+            max_memory=_mm,
             torch_dtype="auto",
             trust_remote_code=True,
             local_files_only=True,
@@ -368,6 +408,7 @@ def main():
         torch.cuda.empty_cache()
         gc.collect()
         model_args.model_name = pruned_model_dir
+        from reap.eval import run_evaluate
         run_evaluate(model_args, pruned_model_dir / "eval", eval_args, reap_args.seed)
 
 

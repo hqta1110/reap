@@ -6,12 +6,20 @@ logger = logging.getLogger(__name__)
 
 MODEL_ATTRS = {
     "Qwen3MoeForCausalLM": {
+        # transformers >=5.16 refactored this architecture into the SAME shape as
+        # Qwen3.5: Qwen3MoeExperts stacks gate_up_proj/down_proj as parameters and
+        # Qwen3MoeTopKRouter carries num_experts/top_k -- the per-expert ModuleList
+        # with gate_proj/up_proj/down_proj is gone. The old entry below described
+        # the pre-5.16 shape and fails with
+        #   AttributeError: 'Qwen3MoeSparseMoeBlock' object has no attribute 'num_experts'
+        # Keep this in step with Qwen3_5MoeForCausalLM; they are now identical.
         "moe_block": "mlp",
-        "gate_proj": "gate_proj",
-        "up_proj": "up_proj",
+        "gate_proj": "gate_up_proj",
+        "up_proj": "gate_up_proj",
         "down_proj": "down_proj",
         "experts": "experts",
-        "fused": False,
+        "fused": True,
+        "grouped": True,
         "router": "gate",
         "num_experts": "num_experts",
         "num_experts_per_tok": "num_experts_per_tok",
@@ -149,6 +157,39 @@ MODEL_ATTRS = {
         "num_experts": "num_experts",
         "num_experts_per_tok": "num_experts_per_tok",
     },
+    "Glm4MoeLiteForCausalLM": {
+        # GLM-4.x-Flash Lite: grouped-fused experts (Glm4MoeLiteExperts holds
+        # stacked gate_up_proj/down_proj); router is `gate`; shared_experts and
+        # the layer-0 dense MLP are left untouched.
+        "moe_block": "mlp",
+        "gate_proj": "gate_up_proj",
+        "up_proj": "gate_up_proj",
+        "down_proj": "down_proj",
+        "experts": "experts",
+        "fused": True,
+        "grouped": True,
+        "router": "gate",
+        "num_experts": "n_routed_experts",
+        "num_experts_per_tok": "num_experts_per_tok",
+    },
+    "Gemma4ForConditionalGeneration": {
+        # gemma-4 has no MoE *block*: the decoder layer itself owns `router`
+        # (Gemma4TextRouter) and `experts` (Gemma4TextExperts, grouped-fused),
+        # alongside a dense `mlp` that always runs and is never pruned. An empty
+        # moe_block makes get_moe() return the layer itself.
+        "moe_block": "",
+        "gate_proj": "gate_up_proj",
+        "up_proj": "gate_up_proj",
+        "down_proj": "down_proj",
+        "experts": "experts",
+        "fused": True,
+        "grouped": True,
+        "router": "router",
+        "num_experts": "num_experts",
+        "num_experts_per_tok": "top_k_experts",
+        "num_experts_cfg_path": "text_config",
+        "layers_path": "model.language_model.layers",
+    },
     "Glm4MoeForCausalLM": {
         "moe_block": "mlp",
         "gate_proj": "gate_proj",
@@ -171,6 +212,10 @@ def get_moe(model, layer):
     layers = model
     for part in attrs.get("layers_path", "model.layers").split("."):
         layers = getattr(layers, part)
+    # gemma-4 has no MoE block: router and experts hang off the decoder layer
+    # itself, so an empty moe_block returns the layer.
+    if not moe_attr_name:
+        return layers[layer]
     return getattr(layers[layer], moe_attr_name)
 
 

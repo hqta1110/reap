@@ -48,11 +48,25 @@ def _grouped_fused_activations(module, flat_input, num_experts, top_k):
     router_logits = torch.nn.functional.linear(x, module.gate.weight.to(dev))  # (T, E)
     selected_experts = torch.topk(router_logits, top_k, dim=-1).indices          # (T, k)
 
-    gu = torch.einsum("th,eoh->eto", x, W_gu)          # (E, T, 2*I)
+    activations = _stacked_expert_activations(experts, x)
+    return router_logits, selected_experts, activations
+
+
+def _stacked_expert_activations(experts, x):
+    """All-expert, UNWEIGHTED activations from a grouped-fused experts module.
+
+        gate, up = linear(x, gate_up_proj[e]).chunk(2);  down(act(gate) * up)
+
+    Split out of _grouped_fused_activations because gemma-4 needs the same math
+    but recovers its routing from the router's own output rather than by
+    recomputing logits from a gate weight.
+    """
+    W_gu = experts.gate_up_proj            # (E, 2*I, H)
+    W_dn = experts.down_proj               # (E, H, I)
+    gu = torch.einsum("th,eoh->eto", x.to(W_gu.device), W_gu)   # (E, T, 2*I)
     gate, up = gu.chunk(2, dim=-1)                       # (E, T, I) each
     h = experts.act_fn(gate) * up                        # (E, T, I)
-    activations = torch.einsum("eti,ehi->eth", h, W_dn)  # (E, T, H)
-    return router_logits, selected_experts, activations
+    return torch.einsum("eti,ehi->eth", h, W_dn)         # (E, T, H)
 
 
 class BaseTransformerObserverHookConfig:
@@ -151,7 +165,47 @@ class BaseTransformerObserver(ABC):
                 "provided. Both conditions must be satisfied to hook the module."
             )
 
+    def _prepare_gemma4_layers(self):
+        """Paired hooks for gemma-4, whose MoE parts hang off the decoder layer.
+
+        `router` consumes the pre-MLP residual and `experts` consumes that same
+        residual after pre_feedforward_layernorm_2, so no single module sees both
+        the expert input and the routing distribution. A light hook on the router
+        stashes its distribution; the real observer hook on the experts picks it up.
+
+        The router returns PROBABILITIES (it softmaxes internally), while
+        update_pruning_state softmaxes what it is given -- so the stash holds
+        log(probs), whose softmax is the original distribution exactly.
+        """
+        from reap.model_util import MODEL_ATTRS
+
+        attrs = MODEL_ATTRS[self.model.__class__.__name__]
+        layers = self.model
+        for part in attrs.get("layers_path", "model.layers").split("."):
+            layers = getattr(layers, part)
+
+        self._gemma4_router_probs = {}
+        for i, layer in enumerate(layers):
+            experts = getattr(layer, attrs["experts"], None)
+            router = getattr(layer, attrs["router"], None)
+            if experts is None or router is None:
+                continue        # dense layer: nothing routed, nothing to prune
+
+            def _router_hook(_mod, _args, output, _layer=i):
+                probs = output[0] if isinstance(output, tuple) else output
+                self._gemma4_router_probs[_layer] = probs.detach()
+
+            self.hooks.append(router.register_forward_hook(_router_hook))
+            self.hooks.append(
+                experts.register_forward_hook(self._hook_factory(experts, i))
+            )
+            logger.info("Hooked gemma-4 experts+router at layer %d", i)
+        if len(self.hooks) == 0:
+            raise ValueError("No gemma-4 MoE layers found to hook.")
+
     def _hook_model(self):
+        if getattr(self.hook_config, "experts_container_hook", False):
+            return self._prepare_gemma4_layers()
         for name, module in self.model.named_modules():
             hook_module = False
             if (
@@ -255,6 +309,11 @@ class MoETransformerObserverConfig(BaseTransformerObserverHookConfig):
     # recomputes router_logits from the gate weight and all-expert activations by
     # batched matmul over the stacked expert weights. See _grouped_fused_activations.
     grouped_fused_experts: bool = False
+    # experts_container_hook: the hooked module IS the stacked experts container
+    # and the router is a SIBLING, not a child (gemma-4). The experts' forward
+    # receives (hidden_states, top_k_index, top_k_weights) already flattened, and
+    # the router's own output supplies the distribution. See _prepare_gemma4_layers.
+    experts_container_hook: bool = False
     distance_measure: str = "angular"
     renormalize_router_weights: bool = False
     record_pruning_metrics_only: bool = False
@@ -353,8 +412,14 @@ class MoETransformerObserver(BaseTransformerObserver):
         num_experts = reduce(
             getattr, self.hook_config.num_experts_attr_name.split("."), module
         )
-        top_k = reduce(getattr, self.hook_config.top_k_attr_name.split("."), module)
-        if num_experts is None or top_k is None:
+        # gemma-4's experts container carries no top_k -- the routed width is read
+        # off top_k_index per call instead.
+        top_k = (
+            None
+            if self.hook_config.experts_container_hook
+            else reduce(getattr, self.hook_config.top_k_attr_name.split("."), module)
+        )
+        if num_experts is None or (top_k is None and not self.hook_config.experts_container_hook):
             raise ValueError(
                 f"Module {module.__class__.__name__} at layer {layer_number} "
                 "does not have expected 'num_experts' or 'top_k' attributes. Check "
@@ -363,17 +428,31 @@ class MoETransformerObserver(BaseTransformerObserver):
 
         @torch.no_grad()
         def _hook_fn(module, args, output):
-            if not len(output) >= 2:
-                raise ValueError(
-                    f"Expected output of module {module.__class__.__name__} at layer "
-                    f"{layer_number} to be a tuple of at least length 2, got {len(output)}."
-                )
-            input = args[0]  # (batch_size, seq_len, hidden_dim)
-            device = input.device
-            if layer_number not in self.state:
-                self.state[layer_number] = self._initialize_state(output, num_experts)
-            batch_size, sequence_length, hidden_dim = input.shape
-            flat_input = input.view(-1, hidden_dim)  # total_seq_len, hidden
+            if self.hook_config.experts_container_hook:
+                # gemma-4: Gemma4TextExperts.forward(hidden_states, top_k_index,
+                # top_k_weights) -- already flat (total_tokens, hidden), and the
+                # routed width is whatever the router chose.
+                flat_input = args[0]
+                device = flat_input.device
+                hidden_dim = flat_input.shape[-1]
+                this_top_k = args[1].shape[-1]
+                if layer_number not in self.state:
+                    self.state[layer_number] = self._initialize_state(
+                        (output,), num_experts
+                    )
+            else:
+                if not len(output) >= 2:
+                    raise ValueError(
+                        f"Expected output of module {module.__class__.__name__} at layer "
+                        f"{layer_number} to be a tuple of at least length 2, got {len(output)}."
+                    )
+                input = args[0]  # (batch_size, seq_len, hidden_dim)
+                device = input.device
+                if layer_number not in self.state:
+                    self.state[layer_number] = self._initialize_state(output, num_experts)
+                batch_size, sequence_length, hidden_dim = input.shape
+                this_top_k = top_k
+                flat_input = input.view(-1, hidden_dim)  # total_seq_len, hidden
 
             attention_mask = self._current_attention_mask
             if attention_mask is not None:
@@ -383,14 +462,30 @@ class MoETransformerObserver(BaseTransformerObserver):
                 # No mask provided - treat all tokens as valid
                 flat_mask = None
 
-            if self.hook_config.grouped_fused_experts:
+            if self.hook_config.experts_container_hook:
+                probs = self._gemma4_router_probs.pop(layer_number, None)
+                if probs is None:
+                    raise ValueError(
+                        f"No router output stashed for layer {layer_number}. The "
+                        "router hook must fire before the experts hook; see "
+                        "_prepare_gemma4_layers."
+                    )
+                probs = probs.to(device=device, dtype=torch.float32)
+                # The router already softmaxed; update_pruning_state softmaxes what
+                # it is handed, and softmax(log p) == p.
+                router_logits = torch.log(
+                    probs.clamp_min(torch.finfo(torch.float32).tiny)
+                )
+                selected_experts = args[1].to(device)
+                activations = _stacked_expert_activations(module, flat_input)
+            elif self.hook_config.grouped_fused_experts:
                 router_logits, selected_experts, activations = \
-                    _grouped_fused_activations(module, flat_input, num_experts, top_k)
+                    _grouped_fused_activations(module, flat_input, num_experts, this_top_k)
             elif self.hook_config.fused_experts:
                 activations = torch.zeros((num_experts, *flat_input.shape), device=device)
                 _, router_scores = output  # (num_experts, total_tokens)
                 router_logits = module.router(flat_input)  # (total_tokens, num_experts)
-                _, selected_experts = torch.topk(router_logits, top_k, dim=-1)
+                _, selected_experts = torch.topk(router_logits, this_top_k, dim=-1)
                 selected_experts = selected_experts.to(device)
                 router_indices = (
                     torch.arange(batch_size * sequence_length, device=device)
@@ -412,7 +507,7 @@ class MoETransformerObserver(BaseTransformerObserver):
                 activations = torch.zeros((num_experts, *flat_input.shape), device=device)
                 # ernie returns combined_output, combine_weights, router_loss, gate_logits
                 *_, router_logits = output  # (total_tokens, num_experts)
-                _, selected_experts = torch.topk(router_logits, top_k, dim=-1)
+                _, selected_experts = torch.topk(router_logits, this_top_k, dim=-1)
                 # selected_experts = selected_experts.to(device)
                 for idx, expert in enumerate(module.experts):
                     activations[idx] = expert(flat_input).to(
@@ -519,7 +614,13 @@ class MoETransformerObserver(BaseTransformerObserver):
 
 @dataclass
 class Qwen3MoEObserverHookConfig(MoETransformerObserverConfig):
+    # transformers >=5.16: the block no longer sets num_experts/top_k on itself and
+    # no longer returns router logits -- it holds a Qwen3MoeTopKRouter `gate` and a
+    # stacked Qwen3MoeExperts, i.e. the grouped-fused path, identical to Qwen3.5.
     module_class_name_to_hook_regex: Optional[str] = "Qwen3MoeSparseMoeBlock"
+    num_experts_attr_name: str = "gate.num_experts"
+    top_k_attr_name: str = "gate.top_k"
+    grouped_fused_experts: bool = True
 
 
 @dataclass
@@ -582,7 +683,32 @@ class Glm44MoEObserverHookConfig(MoETransformerObserverConfig):
     fused_experts: bool = False
 
 
+@dataclass
+class Glm4MoeLiteObserverHookConfig(MoETransformerObserverConfig):
+    # GLM-4.x-Flash "Lite" MoE. Same shape as Qwen3.5-MoE: a single
+    # Glm4MoeLiteExperts module holds stacked gate_up_proj/down_proj, and the
+    # router (`gate`, a Glm4MoeLiteTopkRouter) carries num_experts/top_k.
+    module_class_name_to_hook_regex: Optional[str] = "Glm4MoeLiteMoE"
+    num_experts_attr_name: str = "gate.num_experts"
+    top_k_attr_name: str = "gate.top_k"
+    grouped_fused_experts: bool = True
+
+
+@dataclass
+class Gemma4MoEObserverHookConfig(MoETransformerObserverConfig):
+    # gemma-4 has no MoE block: Gemma4TextDecoderLayer owns `router` and `experts`
+    # directly, next to a dense `mlp` that always runs and is never pruned. The
+    # router reads the PRE-MLP residual while the experts read that residual after
+    # pre_feedforward_layernorm_2, so the two inputs differ and a single hook on
+    # either module cannot see both -- hence the paired hooks.
+    module_class_name_to_hook_regex: Optional[str] = "Gemma4TextExperts"
+    num_experts_attr_name: str = "num_experts"
+    top_k_attr_name: str = ""          # taken from top_k_index at call time
+    experts_container_hook: bool = True
+
+
 OBSERVER_CONFIG_REGISTRY = {
+    "Gemma4ForConditionalGeneration": Gemma4MoEObserverHookConfig,
     "Qwen3MoeForCausalLM": Qwen3MoEObserverHookConfig,
     "Qwen3_5MoeForCausalLM": Qwen3_5MoEObserverHookConfig,
     "Qwen3_5MoeForConditionalGeneration": Qwen3_5MoEObserverHookConfig,
@@ -594,4 +720,5 @@ OBSERVER_CONFIG_REGISTRY = {
     "Ernie4_5_MoEForCausalLM": Ernie4_5MoEObserverHookConfig,
     "Ernie4_5_MoeForCausalLM": Ernie4_5MoEObserverHookConfig,
     "Glm4MoeForCausalLM": Glm44MoEObserverHookConfig,
+    "Glm4MoeLiteForCausalLM": Glm4MoeLiteObserverHookConfig,
 }
