@@ -11,6 +11,8 @@ wheels/
 
 # reap specfic
 artifacts/
+# ...but the observation caches are committed under calibration/ (see its README):
+# they are small, expensive to recompute, and what makes pruning minutes.
 scratch/
 *.log
 .env
