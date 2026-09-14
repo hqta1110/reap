@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/GLM-4.7-Flash/fineweb-edu/pruned_models/reap-renorm_true-seed_42-0.50",
+  "method": "reap50_fw256",
+  "task": "lcb",
+  "batch_size": 64,
+  "mean_running_batch": 45.92,
+  "frac_steps_at_full_batch": 0.5,
+  "primary_metric": "lcb_pass1",
+  "value": 0.0,
+  "correct": 0,
+  "n": 175,
+  "task_dir": "/home/PC/reap-fineweb/results/zai-org_GLM-4.7-Flash/reap50_fw256/20260914_144441_b0064/lcb"
+}

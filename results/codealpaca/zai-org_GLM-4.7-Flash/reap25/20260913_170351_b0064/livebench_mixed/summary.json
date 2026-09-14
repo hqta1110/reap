@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/GLM-4.7-Flash/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.25",
+  "method": "reap25",
+  "task": "livebench_mixed",
+  "batch_size": 64,
+  "mean_running_batch": 57.02,
+  "frac_steps_at_full_batch": 0.7568,
+  "primary_metric": "livebench_mixed",
+  "value": 27.45,
+  "correct": null,
+  "n": 581,
+  "task_dir": "/home/PC/sweep2/results/home_PC_.cache_huggingface_hub_models--zai-org--GLM-4.7-Flash_snapshots_7dd20894a642a0aa287e9827cb1a1f7f91386b67/reap25/20260913_170351_b0064/livebench_mixed"
+}

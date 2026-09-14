@@ -15,7 +15,11 @@ set -uo pipefail
 # close-on-exec: every descendant inherits the lock. An orphaned engine or
 # prune would then hold it after run.sh died, and cron could never restart
 # the sweep. Drop the inherited fd -- only run.sh should hold the lock.
-exec 9>&- 2>/dev/null || true
+# Braces, not `exec 9>&- 2>/dev/null`: that form redirects THIS SCRIPT'S stderr
+# to /dev/null for the rest of its life, so every prune traceback -- OOM, a bad
+# dataset name, a missing snapshot -- vanished and the caller saw a bare `rc=1`.
+# Only the fd-close's own "Bad file descriptor" needs suppressing.
+{ exec 9>&-; } 2>/dev/null || true
 MKEY="$1"; RATIO="$2"; BS="${3:-8}"; NB="${4:-32}"
 DATASET="${DATASET:-allenai/tulu-3-sft-personas-math}"
 DSDIR="${DATASET##*/}"

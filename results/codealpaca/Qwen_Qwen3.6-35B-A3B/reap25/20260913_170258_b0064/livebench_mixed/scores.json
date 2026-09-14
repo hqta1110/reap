@@ -1,0 +1,125 @@
+[
+  {
+    "task": "livebench_mixed",
+    "method": "reap25",
+    "primary_metric": "livebench_mixed",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "livebench_mixed": {
+        "value": 75.76,
+        "stderr": 1.52,
+        "n": 581,
+        "per_task": {
+          "connections": {
+            "value": 82.33,
+            "n": 50
+          },
+          "cta": {
+            "value": 57.14,
+            "n": 49
+          },
+          "math_comp": {
+            "value": 84.78,
+            "n": 46
+          },
+          "olympiad": {
+            "value": 74.03,
+            "n": 36
+          },
+          "paraphrase": {
+            "value": 80.45,
+            "n": 50
+          },
+          "simplify": {
+            "value": 75.78,
+            "n": 50
+          },
+          "spatial": {
+            "value": 90.0,
+            "n": 50
+          },
+          "story_generation": {
+            "value": 78.97,
+            "n": 50
+          },
+          "summarize": {
+            "value": 77.68,
+            "n": 50
+          },
+          "tablejoin": {
+            "value": 42.78,
+            "n": 50
+          },
+          "tablereformat": {
+            "value": 84.0,
+            "n": 50
+          },
+          "zebra_puzzle": {
+            "value": 81.0,
+            "n": 50
+          }
+        },
+        "zero_rows": 61,
+        "full_rows": 379,
+        "unadjudicated_rows": 0
+      }
+    },
+    "meta": {
+      "task": "livebench_mixed",
+      "method": "reap25",
+      "n": 581,
+      "n_samples": 1,
+      "tensor_parallel_size": 2,
+      "dataset_repo": "livebench/{math,reasoning,language,data_analysis,instruction_following}",
+      "dataset_revision": "release 2025-11-25, AMPS_Hard excluded, deduped, mix_seed 0",
+      "dataset_sha256_16": "99a8443b2eb0681a",
+      "dataset_path": "datasets/livebench_mixed.jsonl",
+      "n_shot": 0,
+      "model": "/home/PC/reap/artifacts/Qwen3.6-35B-A3B/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.25",
+      "generation": {
+        "max_tokens": 12288,
+        "temperature": 0.0,
+        "stop": []
+      },
+      "wall_seconds": 355.3,
+      "errors": 0,
+      "hit_length_cap": 8,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 2844,
+        "cap": 12288,
+        "need": 15132
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "requested_seq_concurrency": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 44.88,
+        "steps": 28965,
+        "frac_steps_at_full_batch": 0.5924
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null
+    },
+    "diagnostics": {
+      "n": 581,
+      "median_chars": 2050,
+      "mean_chars": 6618.4,
+      "mean_completion_tokens": 2237.3,
+      "hit_length_cap": 8,
+      "empty_responses": 0,
+      "post_answer_relapse": 0
+    }
+  }
+]

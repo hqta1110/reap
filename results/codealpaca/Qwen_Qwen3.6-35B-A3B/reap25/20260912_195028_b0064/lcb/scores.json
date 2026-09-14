@@ -1,0 +1,116 @@
+[
+  {
+    "task": "lcb",
+    "method": "reap25",
+    "primary_metric": "lcb_pass1",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "lcb_pass1": {
+        "value": 43.43,
+        "stderr": 3.75,
+        "correct": 76,
+        "n": 175
+      }
+    },
+    "meta": {
+      "task": "lcb",
+      "method": "reap25",
+      "n": 175,
+      "dataset_repo": "livecodebench/code_generation_lite",
+      "dataset_revision": "0fe84c3912ea0c4d4a78037083943e8f0c4dd505",
+      "dataset_sha256_16": "bb4c364f71921c44",
+      "dataset_path": "~/.cache/huggingface/hub/datasets--livecodebench--code_generation_lite/snapshots/0fe84c3912ea0c4d4a78037083943e8f0c4dd505/test6.jsonl",
+      "n_shot": 0,
+      "model": "/home/PC/reap/artifacts/Qwen3.6-35B-A3B/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.25",
+      "generation": {
+        "max_tokens": 8192,
+        "temperature": 0.0,
+        "stop": [
+          "```"
+        ]
+      },
+      "wall_seconds": 176.0,
+      "errors": 0,
+      "hit_length_cap": 50,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 1795,
+        "cap": 8192,
+        "need": 9987
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 39.54,
+        "steps": 16222,
+        "frac_steps_at_full_batch": 0.5151
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null,
+      "lm_style": "CodeQwenInstruct",
+      "disable_thinking": true
+    },
+    "exec_failures": [
+      {
+        "doc_id": 1,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 3,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 4,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 6,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 7,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 9,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 10,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 11,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 14,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 16,
+        "why": "tests failed"
+      }
+    ],
+    "diagnostics": {
+      "n": 175,
+      "median_chars": 8144,
+      "mean_chars": 12630.1,
+      "mean_completion_tokens": 3665.0,
+      "hit_length_cap": 50,
+      "empty_responses": 0,
+      "post_answer_relapse": 0
+    }
+  }
+]

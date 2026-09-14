@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/Qwen3-30B-A3B/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.50",
+  "method": "reap50",
+  "task": "livebench_mixed",
+  "batch_size": 64,
+  "mean_running_batch": 44.58,
+  "frac_steps_at_full_batch": 0.5375,
+  "primary_metric": "livebench_mixed",
+  "value": 36.55,
+  "correct": null,
+  "n": 581,
+  "task_dir": "/home/PC/sweep2/results/Qwen_Qwen3-30B-A3B/reap50/20260913_171022_b0064/livebench_mixed"
+}

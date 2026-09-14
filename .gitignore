@@ -26,3 +26,6 @@ pruning_env_5/
 credentials.json
 config/wildbench_prod_env_*
 cmd.sh
+
+# per-machine paths (copy from pipeline/reap.env.example)
+pipeline/reap.env

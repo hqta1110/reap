@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/gemma-4-26B-A4B-it/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.25",
+  "method": "reap25",
+  "task": "mmlu_pro_400",
+  "batch_size": 64,
+  "mean_running_batch": 42.67,
+  "frac_steps_at_full_batch": 0.5007,
+  "primary_metric": "mmlu_pro_simple_evals",
+  "value": 71.25,
+  "correct": 285,
+  "n": 400,
+  "task_dir": "/home/PC/sweep2/results/google_gemma-4-26B-A4B-it/reap25/20260912_193438_b0064/mmlu_pro_400"
+}

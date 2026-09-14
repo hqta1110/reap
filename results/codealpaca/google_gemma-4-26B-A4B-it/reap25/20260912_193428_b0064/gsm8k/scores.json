@@ -1,0 +1,80 @@
+[
+  {
+    "task": "gsm8k",
+    "method": "reap25",
+    "primary_metric": "exact_match_strict",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "exact_match_strict": {
+        "value": 94.92,
+        "stderr": 0.6,
+        "correct": 1252,
+        "n": 1319
+      },
+      "exact_match_flexible": {
+        "value": 94.84,
+        "stderr": 0.61,
+        "correct": 1251,
+        "n": 1319
+      }
+    },
+    "meta": {
+      "task": "gsm8k",
+      "method": "reap25",
+      "n": 1319,
+      "dataset_repo": "openai/gsm8k",
+      "dataset_revision": "740312add88f781978c0658806c59bc2815b9866",
+      "dataset_sha256_16": "ee7b8da9e381df27",
+      "dataset_path": "~/.cache/huggingface/hub/datasets--openai--gsm8k/snapshots/740312add88f781978c0658806c59bc2815b9866/main/test-00000-of-00001.parquet",
+      "n_shot": 5,
+      "model": "/home/PC/reap/artifacts/gemma-4-26B-A4B-it/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.25",
+      "generation": {
+        "max_tokens": 2048,
+        "temperature": 0.0,
+        "stop": [
+          "Question:",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "wall_seconds": 57.0,
+      "errors": 0,
+      "hit_length_cap": 0,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 1192,
+        "cap": 2048,
+        "need": 3240
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 53.14,
+        "steps": 3292,
+        "frac_steps_at_full_batch": 0.8047
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null
+    },
+    "diagnostics": {
+      "n": 1319,
+      "median_chars": 263,
+      "mean_chars": 293.3,
+      "mean_completion_tokens": 132.6,
+      "hit_length_cap": 0,
+      "empty_responses": 0,
+      "post_answer_relapse": 1
+    }
+  }
+]

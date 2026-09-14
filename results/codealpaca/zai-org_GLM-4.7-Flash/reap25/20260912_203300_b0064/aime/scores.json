@@ -1,0 +1,80 @@
+[
+  {
+    "task": "aime",
+    "method": "reap25",
+    "primary_metric": "math_boxed_equal",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "math_boxed_equal": {
+        "value": 0.0,
+        "stderr": 0.0,
+        "correct": 0,
+        "n": 60
+      },
+      "math_last_number": {
+        "value": 0.0,
+        "stderr": 0.0,
+        "correct": 0,
+        "n": 60
+      }
+    },
+    "meta": {
+      "task": "aime",
+      "method": "reap25",
+      "n": 60,
+      "dataset_repo": "derived (Maxwell-Jia/AIME_2024 + math-ai/aime25)",
+      "dataset_revision": "build_derived_datasets.py",
+      "dataset_sha256_16": "749f1c0a7edd6764",
+      "dataset_path": "datasets/aime_2024_2025.jsonl",
+      "n_shot": 4,
+      "model": "/home/PC/reap/artifacts/GLM-4.7-Flash/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.25",
+      "generation": {
+        "max_tokens": 8192,
+        "temperature": 0.0,
+        "stop": [
+          "Problem:",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "wall_seconds": 124.9,
+      "errors": 0,
+      "hit_length_cap": 33,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 1336,
+        "cap": 8192,
+        "need": 9528
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 48.41,
+        "steps": 8192,
+        "frac_steps_at_full_batch": 0.0
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null
+    },
+    "diagnostics": {
+      "n": 60,
+      "median_chars": 19491,
+      "mean_chars": 19869.1,
+      "mean_completion_tokens": 6609.2,
+      "hit_length_cap": 33,
+      "empty_responses": 0,
+      "post_answer_relapse": 0
+    }
+  }
+]

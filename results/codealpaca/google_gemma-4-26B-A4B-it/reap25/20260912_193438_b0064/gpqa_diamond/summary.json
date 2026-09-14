@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/gemma-4-26B-A4B-it/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.25",
+  "method": "reap25",
+  "task": "gpqa_diamond",
+  "batch_size": 64,
+  "mean_running_batch": 36.52,
+  "frac_steps_at_full_batch": 0.4194,
+  "primary_metric": "gpqa_simple_evals",
+  "value": 52.53,
+  "correct": 104,
+  "n": 198,
+  "task_dir": "/home/PC/sweep2/results/google_gemma-4-26B-A4B-it/reap25/20260912_193438_b0064/gpqa_diamond"
+}

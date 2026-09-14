@@ -1,0 +1,70 @@
+[
+  {
+    "task": "gpqa_diamond",
+    "method": "reap50",
+    "primary_metric": "gpqa_simple_evals",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "gpqa_simple_evals": {
+        "value": 36.87,
+        "stderr": 3.43,
+        "correct": 73,
+        "n": 198
+      }
+    },
+    "meta": {
+      "task": "gpqa_diamond",
+      "method": "reap50",
+      "n": 198,
+      "dataset_repo": "Idavidrein/gpqa",
+      "dataset_revision": "openai/simple-evals gpqa_diamond.csv",
+      "dataset_sha256_16": "8867171a78f3c244",
+      "dataset_path": "datasets/gpqa_diamond.jsonl",
+      "n_shot": 0,
+      "model": "/home/PC/reap/artifacts/Qwen3.6-35B-A3B/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.50",
+      "generation": {
+        "max_tokens": 4096,
+        "temperature": 0.0,
+        "stop": []
+      },
+      "wall_seconds": 121.6,
+      "errors": 0,
+      "hit_length_cap": 59,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 2760,
+        "cap": 4096,
+        "need": 6856
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 50.11,
+        "steps": 10873,
+        "frac_steps_at_full_batch": 0.6259
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null
+    },
+    "diagnostics": {
+      "n": 198,
+      "median_chars": 8804,
+      "mean_chars": 8502.9,
+      "mean_completion_tokens": 2751.9,
+      "hit_length_cap": 59,
+      "empty_responses": 0,
+      "post_answer_relapse": 0
+    }
+  }
+]

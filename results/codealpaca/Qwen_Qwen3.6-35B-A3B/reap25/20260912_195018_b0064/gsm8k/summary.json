@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/Qwen3.6-35B-A3B/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.25",
+  "method": "reap25",
+  "task": "gsm8k",
+  "batch_size": 64,
+  "mean_running_batch": 51.91,
+  "frac_steps_at_full_batch": 0.7866,
+  "primary_metric": "exact_match_strict",
+  "value": 96.36,
+  "correct": 1271,
+  "n": 1319,
+  "task_dir": "/home/PC/sweep2/results/Qwen_Qwen3.6-35B-A3B/reap25/20260912_195018_b0064/gsm8k"
+}

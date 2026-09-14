@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/Qwen3-30B-A3B/tulu-3-sft-personas-math/pruned_models/reap-renorm_true-seed_42-0.25",
+  "method": "reap25_math256",
+  "task": "humaneval_plus",
+  "batch_size": 64,
+  "mean_running_batch": 43.28,
+  "frac_steps_at_full_batch": 0.1528,
+  "primary_metric": "humaneval_exec",
+  "value": 22.56,
+  "correct": 37,
+  "n": 164,
+  "task_dir": "/home/PC/reap-tulu/results/Qwen_Qwen3-30B-A3B/reap25_math256/20260913_202038_b0064/humaneval_plus"
+}

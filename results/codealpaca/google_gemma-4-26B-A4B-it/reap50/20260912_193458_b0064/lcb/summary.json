@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/gemma-4-26B-A4B-it/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.50",
+  "method": "reap50",
+  "task": "lcb",
+  "batch_size": 64,
+  "mean_running_batch": 41.58,
+  "frac_steps_at_full_batch": 0.3485,
+  "primary_metric": "lcb_pass1",
+  "value": 53.14,
+  "correct": 93,
+  "n": 175,
+  "task_dir": "/home/PC/sweep2/results/google_gemma-4-26B-A4B-it/reap50/20260912_193458_b0064/lcb"
+}

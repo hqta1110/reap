@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/GLM-4.7-Flash/tulu-3-sft-personas-math/pruned_models/reap-renorm_true-seed_42-0.50",
+  "method": "reap50_math256",
+  "task": "mmlu_pro_400",
+  "batch_size": 64,
+  "mean_running_batch": 57.97,
+  "frac_steps_at_full_batch": 0.7726,
+  "primary_metric": "mmlu_pro_simple_evals",
+  "value": 20.75,
+  "correct": 83,
+  "n": 400,
+  "task_dir": "/home/PC/reap-tulu/results/zai-org_GLM-4.7-Flash/reap50_math256/20260913_211656_b0064/mmlu_pro_400"
+}

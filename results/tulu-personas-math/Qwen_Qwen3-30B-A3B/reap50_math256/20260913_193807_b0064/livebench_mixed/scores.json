@@ -1,0 +1,125 @@
+[
+  {
+    "task": "livebench_mixed",
+    "method": "reap50_math256",
+    "primary_metric": "livebench_mixed",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "livebench_mixed": {
+        "value": 33.34,
+        "stderr": 1.74,
+        "n": 581,
+        "per_task": {
+          "connections": {
+            "value": 7.5,
+            "n": 50
+          },
+          "cta": {
+            "value": 36.73,
+            "n": 49
+          },
+          "math_comp": {
+            "value": 21.74,
+            "n": 46
+          },
+          "olympiad": {
+            "value": 9.08,
+            "n": 36
+          },
+          "paraphrase": {
+            "value": 54.45,
+            "n": 50
+          },
+          "simplify": {
+            "value": 65.68,
+            "n": 50
+          },
+          "spatial": {
+            "value": 30.0,
+            "n": 50
+          },
+          "story_generation": {
+            "value": 53.88,
+            "n": 50
+          },
+          "summarize": {
+            "value": 56.45,
+            "n": 50
+          },
+          "tablejoin": {
+            "value": 6.96,
+            "n": 50
+          },
+          "tablereformat": {
+            "value": 34.0,
+            "n": 50
+          },
+          "zebra_puzzle": {
+            "value": 16.0,
+            "n": 50
+          }
+        },
+        "zero_rows": 263,
+        "full_rows": 155,
+        "unadjudicated_rows": 0
+      }
+    },
+    "meta": {
+      "task": "livebench_mixed",
+      "method": "reap50_math256",
+      "n": 581,
+      "n_samples": 1,
+      "tensor_parallel_size": 2,
+      "dataset_repo": "livebench/{math,reasoning,language,data_analysis,instruction_following}",
+      "dataset_revision": "release 2025-11-25, AMPS_Hard excluded, deduped, mix_seed 0",
+      "dataset_sha256_16": "99a8443b2eb0681a",
+      "dataset_path": "datasets/livebench_mixed.jsonl",
+      "n_shot": 0,
+      "model": "/home/PC/reap/artifacts/Qwen3-30B-A3B/tulu-3-sft-personas-math/pruned_models/reap-renorm_true-seed_42-0.50",
+      "generation": {
+        "max_tokens": 12288,
+        "temperature": 0.0,
+        "stop": []
+      },
+      "wall_seconds": 465.0,
+      "errors": 0,
+      "hit_length_cap": 119,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 2845,
+        "cap": 12288,
+        "need": 15133
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "requested_seq_concurrency": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 53.65,
+        "steps": 30448,
+        "frac_steps_at_full_batch": 0.602
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null
+    },
+    "diagnostics": {
+      "n": 581,
+      "median_chars": 1289,
+      "mean_chars": 8802.4,
+      "mean_completion_tokens": 2811.7,
+      "hit_length_cap": 119,
+      "empty_responses": 0,
+      "post_answer_relapse": 60
+    }
+  }
+]

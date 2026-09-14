@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/gemma-4-26B-A4B-it/tulu-3-sft-personas-math/pruned_models/reap-renorm_true-seed_42-0.25",
+  "method": "reap25_math256",
+  "task": "humaneval_plus",
+  "batch_size": 64,
+  "mean_running_batch": 24.36,
+  "frac_steps_at_full_batch": 0.2006,
+  "primary_metric": "humaneval_exec",
+  "value": 83.54,
+  "correct": 137,
+  "n": 164,
+  "task_dir": "/home/PC/reap-tulu/results/google_gemma-4-26B-A4B-it/reap25_math256/20260913_222723_b0064/humaneval_plus"
+}

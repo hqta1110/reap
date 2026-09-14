@@ -1,0 +1,83 @@
+[
+  {
+    "task": "math500",
+    "method": "reap25_math256",
+    "primary_metric": "math_boxed_equal",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "math_boxed_equal": {
+        "value": 31.2,
+        "stderr": 2.07,
+        "correct": 156,
+        "n": 500
+      },
+      "math_last_number": {
+        "value": 23.0,
+        "stderr": 1.88,
+        "correct": 115,
+        "n": 500
+      }
+    },
+    "meta": {
+      "task": "math500",
+      "method": "reap25_math256",
+      "n": 500,
+      "n_samples": 1,
+      "tensor_parallel_size": 2,
+      "dataset_repo": "HuggingFaceH4/MATH-500",
+      "dataset_revision": "6e4ed1a2a79af7d8630a6b768ec859cb5af4d3be",
+      "dataset_sha256_16": "35dc41080a368085",
+      "dataset_path": "~/.cache/huggingface/hub/datasets--HuggingFaceH4--MATH-500/snapshots/6e4ed1a2a79af7d8630a6b768ec859cb5af4d3be/test.jsonl",
+      "n_shot": 4,
+      "model": "/home/PC/reap/artifacts/Qwen3-30B-A3B/tulu-3-sft-personas-math/pruned_models/reap-renorm_true-seed_42-0.25",
+      "generation": {
+        "max_tokens": 4096,
+        "temperature": 0.0,
+        "stop": [
+          "Problem:",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "wall_seconds": 327.0,
+      "errors": 0,
+      "hit_length_cap": 344,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 1352,
+        "cap": 4096,
+        "need": 5448
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "requested_seq_concurrency": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 58.42,
+        "steps": 24905,
+        "frac_steps_at_full_batch": 0.8372
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null
+    },
+    "diagnostics": {
+      "n": 500,
+      "median_chars": 10416,
+      "mean_chars": 8538.1,
+      "mean_completion_tokens": 2909.9,
+      "hit_length_cap": 344,
+      "empty_responses": 0,
+      "post_answer_relapse": 7
+    }
+  }
+]

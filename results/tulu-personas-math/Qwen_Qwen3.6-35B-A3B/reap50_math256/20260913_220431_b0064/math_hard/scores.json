@@ -1,0 +1,83 @@
+[
+  {
+    "task": "math_hard",
+    "method": "reap50_math256",
+    "primary_metric": "math_boxed_equal",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "math_boxed_equal": {
+        "value": 81.27,
+        "stderr": 1.07,
+        "correct": 1076,
+        "n": 1324
+      },
+      "math_last_number": {
+        "value": 49.4,
+        "stderr": 1.37,
+        "correct": 654,
+        "n": 1324
+      }
+    },
+    "meta": {
+      "task": "math_hard",
+      "method": "reap50_math256",
+      "n": 1324,
+      "n_samples": 1,
+      "tensor_parallel_size": 2,
+      "dataset_repo": "derived (lighteval/MATH-Hard)",
+      "dataset_revision": "build_derived_datasets.py",
+      "dataset_sha256_16": "a510c3b339846175",
+      "dataset_path": "datasets/math_hard.jsonl",
+      "n_shot": 4,
+      "model": "/home/PC/reap/artifacts/Qwen3.6-35B-A3B/tulu-3-sft-personas-math/pruned_models/reap-renorm_true-seed_42-0.50",
+      "generation": {
+        "max_tokens": 4096,
+        "temperature": 0.0,
+        "stop": [
+          "Problem:",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "wall_seconds": 407.9,
+      "errors": 0,
+      "hit_length_cap": 116,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 1964,
+        "cap": 4096,
+        "need": 6060
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "requested_seq_concurrency": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 58.69,
+        "steps": 32505,
+        "frac_steps_at_full_batch": 0.8752
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null
+    },
+    "diagnostics": {
+      "n": 1324,
+      "median_chars": 2541,
+      "mean_chars": 3451.7,
+      "mean_completion_tokens": 1440.8,
+      "hit_length_cap": 116,
+      "empty_responses": 0,
+      "post_answer_relapse": 1
+    }
+  }
+]

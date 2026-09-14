@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/Qwen3.6-35B-A3B/tulu-3-sft-personas-math/pruned_models/reap-renorm_true-seed_42-0.50",
+  "method": "reap50_math256",
+  "task": "gpqa_diamond",
+  "batch_size": 64,
+  "mean_running_batch": 47.88,
+  "frac_steps_at_full_batch": 0.617,
+  "primary_metric": "gpqa_simple_evals",
+  "value": 45.45,
+  "correct": 90,
+  "n": 198,
+  "task_dir": "/home/PC/reap-tulu/results/Qwen_Qwen3.6-35B-A3B/reap50_math256/20260913_220925_b0064/gpqa_diamond"
+}

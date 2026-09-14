@@ -1,0 +1,57 @@
+{
+  "task": "gsm8k",
+  "method": "reap25_fw256",
+  "n": 1319,
+  "n_samples": 1,
+  "tensor_parallel_size": 2,
+  "dataset_repo": "openai/gsm8k",
+  "dataset_revision": "740312add88f781978c0658806c59bc2815b9866",
+  "dataset_sha256_16": "ee7b8da9e381df27",
+  "dataset_path": "~/.cache/huggingface/hub/datasets--openai--gsm8k/snapshots/740312add88f781978c0658806c59bc2815b9866/main/test-00000-of-00001.parquet",
+  "n_shot": 5,
+  "model": "/home/PC/reap/artifacts/Qwen3-30B-A3B/fineweb-edu/pruned_models/reap-renorm_true-seed_42-0.25",
+  "generation": {
+    "max_tokens": 2048,
+    "temperature": 0.0,
+    "stop": [
+      "Question:",
+      "</s>",
+      "<|im_end|>"
+    ]
+  },
+  "wall_seconds": 119.4,
+  "errors": 0,
+  "hit_length_cap": 124,
+  "mode": "offline_batch_pinned",
+  "max_model_len": 16384,
+  "context_budget": {
+    "max_prompt_tokens": 1165,
+    "cap": 2048,
+    "need": 3213
+  },
+  "batching": {
+    "requested_batch_size": 64,
+    "requested_seq_concurrency": 64,
+    "max_num_batched_tokens": null,
+    "enable_prefix_caching": false,
+    "chunked_prefill": "default",
+    "enforce_eager": false,
+    "engine_seed": 0,
+    "shuffle_seed": null,
+    "mean_running_batch": 52.63,
+    "steps": 7915,
+    "frac_steps_at_full_batch": 0.7453
+  },
+  "preflight": {
+    "expert_skip_mode": "off",
+    "patches_importable": null,
+    "fused_kernel_built": null
+  },
+  "warmup": null,
+  "sere_evidence": {
+    "enabled_layers": 0,
+    "changed_frac_max": null,
+    "changed_frac_lines": 0,
+    "log_basename": "qwen3-30b_reap25_fw256_b64_gsm8kmath_hardmath500aime.log"
+  }
+}

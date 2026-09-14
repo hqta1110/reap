@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/Qwen3-30B-A3B/fineweb-edu/pruned_models/reap-renorm_true-seed_42-0.50",
+  "method": "reap50_fw256",
+  "task": "gsm8k",
+  "batch_size": 64,
+  "mean_running_batch": 47.01,
+  "frac_steps_at_full_batch": 0.6746,
+  "primary_metric": "exact_match_strict",
+  "value": 83.4,
+  "correct": 1100,
+  "n": 1319,
+  "task_dir": "/home/PC/reap-fineweb/results/Qwen_Qwen3-30B-A3B/reap50_fw256/20260914_133433_b0064/gsm8k"
+}

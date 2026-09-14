@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap/artifacts/gemma-4-26B-A4B-it/evol-codealpaca-v1/pruned_models/reap-renorm_true-seed_42-0.50",
+  "method": "reap50",
+  "task": "humaneval_plus",
+  "batch_size": 64,
+  "mean_running_batch": 16.9,
+  "frac_steps_at_full_batch": 0.1739,
+  "primary_metric": "humaneval_exec",
+  "value": 90.85,
+  "correct": 149,
+  "n": 164,
+  "task_dir": "/home/PC/sweep2/results/google_gemma-4-26B-A4B-it/reap50/20260912_193458_b0064/humaneval_plus"
+}
