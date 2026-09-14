@@ -106,8 +106,9 @@ def table(rs, models, note=""):
         print(f"| {k[0]} | {k[1]} | {k[2]} | `{k[3]}` | {k[4]} | " + " | ".join(cells) + " |")
     print()
 
-MATH, CODE = "tulu-personas-math", "codealpaca"
-CORPUS = {MATH: "allenai/tulu-3-sft-personas-math", CODE: "theblackcat102/evol-codealpaca-v1"}
+MATH, CODE, WEB = "tulu-personas-math", "codealpaca", "fineweb"
+CORPUS = {MATH: "allenai/tulu-3-sft-personas-math", CODE: "theblackcat102/evol-codealpaca-v1",
+          WEB: "HuggingFaceFW/fineweb-edu"}
 
 cur = [r for r in rows if r["proto"] == "offline" and r["model"] in MAIN4]
 tasks_all = [t for t in TASKS if any(r["task"] == t for r in cur)]
@@ -149,8 +150,13 @@ gm = section(MATH, "1. Calibrated on MATH — `" + CORPUS[MATH] + "`",
              "Run 2026-09-13/14. Arms `reap25_math256` / `reap50_math256`.")
 gc = section(CODE, "2. Calibrated on CODE — `" + CORPUS[CODE] + "`",
              "Run 2026-09-12/13. Arms `reap25` / `reap50`.")
+# The neutral control: general web prose, neither of the two capabilities the
+# math-vs-code contrast is about. It is what says whether that contrast is
+# "calibration picks a specialty" or just "some corpora prune better".
+gw = section(WEB, "3. Calibrated on WEB TEXT — `" + CORPUS[WEB] + "`",
+             "Run 2026-09-14. Arms `reap25_fw256` / `reap50_fw256`.")
 
-print("## 3. Math minus code\n")
+print("## 4. Math minus code\n")
 print("Same model, same ratio, same protocol -- the only difference is the corpus.")
 print("Positive = math calibration scored higher.\n")
 print("| model | ratio | " + " | ".join(tasks_all) + " |")
@@ -171,7 +177,7 @@ for ra in ("reap25", "reap50"):
         for t in tasks_all) + " |")
 print()
 
-print("## 4. Baseline reference — no pruning\n")
+print("## 5. Baseline reference — no pruning\n")
 print("Un-pruned, same protocol, so sections 1 and 2 can each be read as a delta.\n")
 base = []
 for root in ("/home/PC/sweep2/results",
@@ -212,6 +218,13 @@ print("  flat; at reap25 the same swap is nearly a wash. Pruning keeps the exper
 print("  calibration data activates, and only at 50% must the surviving set specialise.")
 print("  Corroborated earlier on GLM, where prose->code calibration moved humaneval+ from")
 print("  1.83 to 46.95 at the same 256 samples: sample count did not matter; domain did.")
+print("- **Web text is the worst of the three corpora, not a neutral middle.** Section 3")
+print("  sits at or below both task corpora almost everywhere, and collapses hardest where")
+print("  a capability is narrow: code is near zero at reap25 (lcb 4.6-7.4, humaneval+ 1.2-18.3")
+print("  outside gemma4) and GLM loses math outright (math_hard 2.04 at reap25, 0.30 at")
+print("  reap50). Calibrating on prose does not preserve general ability -- it preserves")
+print("  the experts prose happens to activate, which is a narrower set than either task")
+print("  corpus selects. gemma-4 reap50 is the extreme: gsm8k 22.74 against 92.04 on math.")
 print("- **Calibration BUDGET is not equalised across these rows.** The tulu-math arms used")
 print("  8x32 @ L256 (256 samples); the codealpaca caches on this box are 32x8 @ L256 for")
 print("  GLM (identical volume) and 4x32 @ L256 for qwen3-30b (half). Qwen3.6/gemma4")

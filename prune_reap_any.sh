@@ -24,7 +24,15 @@ MKEY="$1"; RATIO="$2"; BS="${3:-8}"; NB="${4:-32}"
 DATASET="${DATASET:-allenai/tulu-3-sft-personas-math}"
 DSDIR="${DATASET##*/}"
 HUB=/home/PC/.cache/huggingface/hub
-cd /home/PC/reap || exit 2
+# REAP_ROOT, not a hardcoded path: this script was pinned to one machine's clone
+# (/home/PC/reap), so on any other checkout the prune wrote its checkpoints into
+# the OTHER tree while launch_reap.sh looked under $REAP_ROOT/artifacts -- every
+# cell then failed with "no pruned checkpoint at ...". reap.env is the only
+# per-machine file; honour it here too.
+_RP=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+. "$_RP/pipeline/reap.env.example"
+[ -f "$_RP/pipeline/reap.env" ] && . "$_RP/pipeline/reap.env"
+cd "$REAP_ROOT" || exit 2
 PY=/home/PC/reap/.venv-reap/bin/python
 
 case "$MKEY" in

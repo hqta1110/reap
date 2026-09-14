@@ -1,0 +1,51 @@
+{
+  "task": "aime",
+  "method": "reap50_fw256",
+  "n": 60,
+  "n_samples": 1,
+  "tensor_parallel_size": 2,
+  "dataset_repo": "derived (Maxwell-Jia/AIME_2024 + math-ai/aime25)",
+  "dataset_revision": "build_derived_datasets.py",
+  "dataset_sha256_16": "749f1c0a7edd6764",
+  "dataset_path": "datasets/aime_2024_2025.jsonl",
+  "n_shot": 4,
+  "model": "/home/PC/reap-new/artifacts/Qwen3.6-35B-A3B/fineweb-edu/pruned_models/reap-renorm_true-seed_42-0.50",
+  "generation": {
+    "max_tokens": 8192,
+    "temperature": 0.0,
+    "stop": [
+      "Problem:",
+      "</s>",
+      "<|im_end|>"
+    ]
+  },
+  "wall_seconds": 90.9,
+  "errors": 0,
+  "hit_length_cap": 41,
+  "mode": "offline_batch_pinned",
+  "max_model_len": 16384,
+  "context_budget": {
+    "max_prompt_tokens": 1405,
+    "cap": 8192,
+    "need": 9597
+  },
+  "batching": {
+    "requested_batch_size": 64,
+    "requested_seq_concurrency": 64,
+    "max_num_batched_tokens": null,
+    "enable_prefix_caching": false,
+    "chunked_prefill": "default",
+    "enforce_eager": false,
+    "engine_seed": 0,
+    "shuffle_seed": null,
+    "mean_running_batch": 50.39,
+    "steps": 8192,
+    "frac_steps_at_full_batch": 0.0
+  },
+  "preflight": {
+    "expert_skip_mode": "off",
+    "patches_importable": null,
+    "fused_kernel_built": null
+  },
+  "warmup": null
+}

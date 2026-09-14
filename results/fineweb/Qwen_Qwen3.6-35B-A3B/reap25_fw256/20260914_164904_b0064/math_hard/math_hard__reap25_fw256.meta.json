@@ -1,0 +1,51 @@
+{
+  "task": "math_hard",
+  "method": "reap25_fw256",
+  "n": 1324,
+  "n_samples": 1,
+  "tensor_parallel_size": 2,
+  "dataset_repo": "derived (lighteval/MATH-Hard)",
+  "dataset_revision": "build_derived_datasets.py",
+  "dataset_sha256_16": "a510c3b339846175",
+  "dataset_path": "datasets/math_hard.jsonl",
+  "n_shot": 4,
+  "model": "/home/PC/reap-new/artifacts/Qwen3.6-35B-A3B/fineweb-edu/pruned_models/reap-renorm_true-seed_42-0.25",
+  "generation": {
+    "max_tokens": 4096,
+    "temperature": 0.0,
+    "stop": [
+      "Problem:",
+      "</s>",
+      "<|im_end|>"
+    ]
+  },
+  "wall_seconds": 519.3,
+  "errors": 0,
+  "hit_length_cap": 199,
+  "mode": "offline_batch_pinned",
+  "max_model_len": 16384,
+  "context_budget": {
+    "max_prompt_tokens": 1964,
+    "cap": 4096,
+    "need": 6060
+  },
+  "batching": {
+    "requested_batch_size": 64,
+    "requested_seq_concurrency": 64,
+    "max_num_batched_tokens": null,
+    "enable_prefix_caching": false,
+    "chunked_prefill": "default",
+    "enforce_eager": false,
+    "engine_seed": 0,
+    "shuffle_seed": null,
+    "mean_running_batch": 59.94,
+    "steps": 36735,
+    "frac_steps_at_full_batch": 0.8923
+  },
+  "preflight": {
+    "expert_skip_mode": "off",
+    "patches_importable": null,
+    "fused_kernel_built": null
+  },
+  "warmup": null
+}

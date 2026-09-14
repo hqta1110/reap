@@ -85,6 +85,49 @@ missing_jobs() {
   done
 }
 
+# Cells for THIS model plus every later model whose checkpoints are already on
+# disk and whose prune has finished. One model at a time was right for 4 GPUs
+# (2 lanes); with more pairs a single straggler cell leaves every other lane idle
+# behind it while the next model's checkpoint sits there pruned and unused.
+# The gate is the weights themselves plus a live prefetch pid, so a half-written
+# checkpoint is never queued.
+ready_jobs() {
+  local i mk md r ok
+  for i in $(seq "$idx" $((${#MODELS[@]}-1))); do
+    IFS=: read -r mk _ md <<<"${MODELS[$i]}"
+    # The prefetch writes MODELS[idx+1]; while it is alive nothing past idx is ready.
+    [ "$i" -eq "$idx" ] || { [ -n "$PREFETCH_PID" ] && kill -0 "$PREFETCH_PID" 2>/dev/null && break; }
+    ok=1
+    for r in 0.25 0.50; do
+      ls "$ART/$md/$DS/pruned_models/reap-renorm_true-seed_42-$r"/*.safetensors \
+        >/dev/null 2>&1 || ok=0
+    done
+    [ "$ok" = 1 ] || break
+    full_jobs "$mk"
+  done | missing_jobs
+}
+
+RUNNING=$_P/scheduler/RUNNING.txt
+TALLY=$CAMPAIGN/.retry_tally
+# Put failed cells back in the queue WHILE the drain is still going. The retry
+# loop below only runs once drain() returns -- i.e. once the last in-flight cell
+# finishes -- so a single long straggler left every other pair idle holding four
+# ready-to-rerun cells. Capped at 3 requeues per cell so a genuinely broken cell
+# cannot spin forever; the loop below still reports what never cleared.
+topup() {
+  local line n
+  ready_jobs | ( exec 9>"$_P/scheduler/.jobs.lock"; flock 9
+    while IFS= read -r line; do
+      grep -qxF "$line" "$Q" 2>/dev/null && continue
+      grep -qxF "$line" "$RUNNING" 2>/dev/null && continue
+      n=$(grep -cxF "$line" "$TALLY" 2>/dev/null; true)
+      [ "${n:-0}" -ge 3 ] && continue
+      printf '%s\n' "$line" >> "$TALLY"
+      printf '%s\n' "$line" >> "$Q"
+      echo "--- $(date -Is) requeued mid-drain: $line"
+    done )
+}
+
 drain() {   # run the supervisor until the queue is empty and no worker is left
   # grep -c prints 0 AND exits 1 on no match, so `|| echo 0` emits TWO lines and
   # the test dies with "integer expression expected" -- which reads as "queue
@@ -94,6 +137,7 @@ drain() {   # run the supervisor until the queue is empty and no worker is left
     # Foreground, so a supervisor that dies is restarted by this loop instead of
     # silently letting run.sh march on to the next model.
     bash $_P/scheduler/supervisor.sh 2>&1 | tee -a "$LOGS/supervisor.log"
+    topup
     sleep 30
   done
 }
@@ -137,8 +181,8 @@ for spec in "${MODELS[@]}"; do
   prune_model "$MKEY" "$PKEY" "$MDIR" \
     || { echo "--- skipping $MKEY, its prune failed"; continue; }
 
-  missing_jobs < "$Q.all" > "$Q"
-  echo "--- $(date -Is) queued $(wc -l < "$Q") cell(s) for $MKEY"
+  ready_jobs > "$Q"
+  echo "--- $(date -Is) queued $(wc -l < "$Q") cell(s) (from $MKEY on)"
   drain
 
   # Retry while the missing set is still SHRINKING. Concurrent vLLM engine
@@ -147,7 +191,7 @@ for spec in "${MODELS[@]}"; do
   # cells are genuinely broken, and repeating it would just spin.
   prev=$(( $(wc -l < "$Q.all") + 1 ))
   for _ in 1 2 3; do
-    missing_jobs < "$Q.all" > "$Q.retry"
+    ready_jobs > "$Q.retry"
     n=$(wc -l < "$Q.retry")
     [ "$n" -eq 0 ] && break
     if [ "$n" -ge "$prev" ]; then

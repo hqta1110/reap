@@ -1,0 +1,73 @@
+[
+  {
+    "task": "mmlu_pro_400",
+    "method": "reap50_fw256",
+    "primary_metric": "mmlu_pro_simple_evals",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "mmlu_pro_simple_evals": {
+        "value": 67.0,
+        "stderr": 2.35,
+        "correct": 268,
+        "n": 400
+      }
+    },
+    "meta": {
+      "task": "mmlu_pro_400",
+      "method": "reap50_fw256",
+      "n": 400,
+      "n_samples": 1,
+      "tensor_parallel_size": 2,
+      "dataset_repo": "TIGER-Lab/MMLU-Pro",
+      "dataset_revision": "test split -> 1200 stratified (seed 42) -> 400 stratified (seed 42)",
+      "dataset_sha256_16": "9a9f6fd35339aaf5",
+      "dataset_path": "datasets/mmlu_pro_400.jsonl",
+      "n_shot": 0,
+      "model": "/home/PC/reap-new/artifacts/Qwen3.6-35B-A3B/fineweb-edu/pruned_models/reap-renorm_true-seed_42-0.50",
+      "generation": {
+        "max_tokens": 4096,
+        "temperature": 0.0,
+        "stop": []
+      },
+      "wall_seconds": 133.3,
+      "errors": 0,
+      "hit_length_cap": 46,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 1715,
+        "cap": 4096,
+        "need": 5811
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "requested_seq_concurrency": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 49.21,
+        "steps": 10740,
+        "frac_steps_at_full_batch": 0.6206
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null
+    },
+    "diagnostics": {
+      "n": 400,
+      "median_chars": 2997,
+      "mean_chars": 4274.1,
+      "mean_completion_tokens": 1321.4,
+      "hit_length_cap": 46,
+      "empty_responses": 0,
+      "post_answer_relapse": 0
+    }
+  }
+]

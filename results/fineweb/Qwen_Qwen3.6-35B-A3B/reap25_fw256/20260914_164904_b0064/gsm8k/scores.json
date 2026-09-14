@@ -1,0 +1,83 @@
+[
+  {
+    "task": "gsm8k",
+    "method": "reap25_fw256",
+    "primary_metric": "exact_match_strict",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "exact_match_strict": {
+        "value": 95.53,
+        "stderr": 0.57,
+        "correct": 1260,
+        "n": 1319
+      },
+      "exact_match_flexible": {
+        "value": 95.45,
+        "stderr": 0.57,
+        "correct": 1259,
+        "n": 1319
+      }
+    },
+    "meta": {
+      "task": "gsm8k",
+      "method": "reap25_fw256",
+      "n": 1319,
+      "n_samples": 1,
+      "tensor_parallel_size": 2,
+      "dataset_repo": "openai/gsm8k",
+      "dataset_revision": "740312add88f781978c0658806c59bc2815b9866",
+      "dataset_sha256_16": "ee7b8da9e381df27",
+      "dataset_path": "~/.cache/huggingface/hub/datasets--openai--gsm8k/snapshots/740312add88f781978c0658806c59bc2815b9866/main/test-00000-of-00001.parquet",
+      "n_shot": 5,
+      "model": "/home/PC/reap-new/artifacts/Qwen3.6-35B-A3B/fineweb-edu/pruned_models/reap-renorm_true-seed_42-0.25",
+      "generation": {
+        "max_tokens": 2048,
+        "temperature": 0.0,
+        "stop": [
+          "Question:",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "wall_seconds": 100.6,
+      "errors": 0,
+      "hit_length_cap": 2,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 1194,
+        "cap": 2048,
+        "need": 3242
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "requested_seq_concurrency": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 51.92,
+        "steps": 3962,
+        "frac_steps_at_full_batch": 0.786
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null
+    },
+    "diagnostics": {
+      "n": 1319,
+      "median_chars": 326,
+      "mean_chars": 388.7,
+      "mean_completion_tokens": 156.0,
+      "hit_length_cap": 2,
+      "empty_responses": 0,
+      "post_answer_relapse": 1
+    }
+  }
+]

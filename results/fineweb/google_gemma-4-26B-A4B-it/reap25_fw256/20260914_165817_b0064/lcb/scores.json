@@ -1,0 +1,119 @@
+[
+  {
+    "task": "lcb",
+    "method": "reap25_fw256",
+    "primary_metric": "lcb_pass1",
+    "coverage": 100.0,
+    "partial": false,
+    "scores": {
+      "lcb_pass1": {
+        "value": 7.43,
+        "stderr": 1.98,
+        "correct": 13,
+        "n": 175
+      }
+    },
+    "meta": {
+      "task": "lcb",
+      "method": "reap25_fw256",
+      "n": 175,
+      "n_samples": 1,
+      "tensor_parallel_size": 2,
+      "dataset_repo": "livecodebench/code_generation_lite",
+      "dataset_revision": "0fe84c3912ea0c4d4a78037083943e8f0c4dd505",
+      "dataset_sha256_16": "bb4c364f71921c44",
+      "dataset_path": "~/.cache/huggingface/hub/datasets--livecodebench--code_generation_lite/snapshots/0fe84c3912ea0c4d4a78037083943e8f0c4dd505/test6.jsonl",
+      "n_shot": 0,
+      "model": "/home/PC/reap-new/artifacts/gemma-4-26B-A4B-it/fineweb-edu/pruned_models/reap-renorm_true-seed_42-0.25",
+      "generation": {
+        "max_tokens": 8192,
+        "temperature": 0.0,
+        "stop": [
+          "```"
+        ]
+      },
+      "wall_seconds": 134.5,
+      "errors": 0,
+      "hit_length_cap": 46,
+      "mode": "offline_batch_pinned",
+      "max_model_len": 16384,
+      "context_budget": {
+        "max_prompt_tokens": 2896,
+        "cap": 8192,
+        "need": 11088
+      },
+      "batching": {
+        "requested_batch_size": 64,
+        "requested_seq_concurrency": 64,
+        "max_num_batched_tokens": null,
+        "enable_prefix_caching": false,
+        "chunked_prefill": "default",
+        "enforce_eager": false,
+        "engine_seed": 0,
+        "shuffle_seed": null,
+        "mean_running_batch": 43.68,
+        "steps": 12386,
+        "frac_steps_at_full_batch": 0.357
+      },
+      "preflight": {
+        "expert_skip_mode": "off",
+        "patches_importable": null,
+        "fused_kernel_built": null
+      },
+      "warmup": null,
+      "lm_style": "GEMMA4",
+      "disable_thinking": true
+    },
+    "exec_failures": [
+      {
+        "doc_id": 0,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 1,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 2,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 3,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 4,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 6,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 7,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 8,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 9,
+        "why": "tests failed"
+      },
+      {
+        "doc_id": 10,
+        "why": "tests failed"
+      }
+    ],
+    "diagnostics": {
+      "n": 175,
+      "median_chars": 3524,
+      "mean_chars": 10848.2,
+      "mean_completion_tokens": 3091.7,
+      "hit_length_cap": 46,
+      "empty_responses": 0,
+      "post_answer_relapse": 0
+    }
+  }
+]

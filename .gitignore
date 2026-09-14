@@ -31,3 +31,10 @@ cmd.sh
 
 # per-machine paths (copy from pipeline/reap.env.example)
 pipeline/reap.env
+
+# scheduler runtime state + downloaded calibration corpora
+pipeline/scheduler/.jobs.lock
+pipeline/scheduler/.push.lock
+pipeline/scheduler/RUNNING.txt
+pipeline/scheduler/DONE.txt
+data/

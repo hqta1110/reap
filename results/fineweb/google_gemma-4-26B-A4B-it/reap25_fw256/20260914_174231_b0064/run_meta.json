@@ -1,0 +1,13 @@
+{
+  "model": "/home/PC/reap-new/artifacts/gemma-4-26B-A4B-it/fineweb-edu/pruned_models/reap-renorm_true-seed_42-0.25",
+  "method": "reap25_fw256",
+  "tasks": [
+    "livebench_mixed"
+  ],
+  "mode": "offline_batch_pinned",
+  "batch_size": 64,
+  "created_at_utc": "20260914_174231",
+  "run_dir": "/home/PC/.reap-campaigns/fineweb/results/google_gemma-4-26B-A4B-it/reap25_fw256/20260914_174231_b0064",
+  "limit": null,
+  "expert_skip_mode": "off"
+}

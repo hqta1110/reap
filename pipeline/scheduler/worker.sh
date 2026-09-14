@@ -64,6 +64,11 @@ while :; do
   until gpus_idle; do sleep 15; done
   job=$(exec 9>"$QLOCK"; pop_job) || { echo "[$TAG] $(date -Is) queue empty, exiting"; break; }
   read -r MKEY ARM BS TASKS <<<"$job"
+  # Publish what this worker is running. run.sh tops the queue up mid-drain, and
+  # without an in-flight list a cell that has not written its summary.json yet
+  # looks identical to one that failed -- it would be queued a second time onto
+  # another pair. Same lock as the queue, so the two stay consistent.
+  ( exec 9>"$QLOCK"; flock 9; printf '%s\n' "$job" >> RUNNING.txt )
   TASKS="${TASKS:-gpqa_diamond mmlu_pro}"; TTAG=$(echo "$TASKS" | tr -d " " | sed "s/gpqa_diamond/gpqa/;s/mmlu_pro/mmlu/")
   LOG="logs/${MKEY}_${ARM}_b${BS}_${TTAG}.log"
   echo "[$TAG] $(date -Is) START $MKEY $ARM B=$BS [$TASKS] on $GPUS"
@@ -100,6 +105,8 @@ while :; do
   else
     echo "$(date -Is) FAIL $MKEY $ARM B=$BS rc=$rc $(echo "$V" | grep VERDICT)" >> DONE.txt
   fi
+  ( exec 9>"$QLOCK"; flock 9
+    { grep -vxF "$job" RUNNING.txt || true; } > RUNNING.tmp; mv RUNNING.tmp RUNNING.txt )
   echo "[$TAG] $(date -Is) DONE  $MKEY $ARM B=$BS rc=$rc"
   sleep 20   # let the engine release memory before the next idle probe
 done
