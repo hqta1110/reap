@@ -27,7 +27,23 @@ pushed. `run.sh` resumes from disk, so restarting re-queues exactly what is miss
 
 To continue:
 
+    cp pipeline/reap.env.example pipeline/reap.env   # edit paths for this machine
+    ./calibration/install_caches.sh
+    ./pipeline/preflight.sh                          # says what is still missing
     ./pipeline/start.sh $REAP_STATE/fineweb
+
+**This repo is the REAP half only.** The eval half is external and is most of the
+setup on a bare machine -- run `preflight.sh` before assuming a pull is enough:
+
+| dependency | where |
+|---|---|
+| eval harness | `hqta1110/moe-eval-unified`, branch `feat/offline-batch-pinned-eval` |
+| results repo (push target) | `hqta1110/moe-eval-results` |
+| venv: qwen3-30b / qwen3.6 | vLLM 0.18.1 |
+| venv: glm-4.7-flash | vLLM 0.18.1 |
+| venv: gemma-4 | vLLM **0.29** (different on purpose) |
+| prune venv | transformers >= 5.16 |
+| base weights | ~232 GB of HF snapshots for the four models |
 
 Prune cost remaining, on the machine that ran this:
 
