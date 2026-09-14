@@ -25,6 +25,7 @@ PUSHLOCK=.push.lock
 # file sere_speed_bench.sh and gemma4_worker.sh take, so those cannot collide
 # with this sweep either.
 PAIRLOCK="$REAP_STATE/locks/pair_g${GPUS//,/}.lock"
+mkdir -p "$REAP_STATE/locks" 2>/dev/null || true
 exec 8>"$PAIRLOCK"
 if ! flock -n 8; then
   echo "[$TAG] pair $GPUS is held by another worker -- refusing to double-book"; exit 3

@@ -28,6 +28,10 @@ PAIRS=(${GPU_PAIRS:-0,1 2,3})
 # Reserved exits for "this pair is unavailable". Chosen high so a real command's
 # status (prune.py exits 1/2) can never be mistaken for one.
 BUSY_LOCK=75; BUSY_GPU=76
+# The lock dir will not exist on a fresh machine, and `exec 8>` into a missing
+# directory fails silently here -- flock then never succeeds and the allocator
+# spins forever instead of running anything. Create it once, up front.
+mkdir -p "$REAP_STATE/locks" 2>/dev/null || true
 
 pair_idle() {   # pair_idle <gpus>
   local apps used
