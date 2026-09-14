@@ -1,3 +1,8 @@
+> **Fork note.** This fork adds an end-to-end calibrate -> prune -> evaluate
+> pipeline on top of upstream REAP. Continuing the campaigns on another
+> machine: start at [HANDOFF.md](HANDOFF.md). State: [STATUS.md](STATUS.md).
+> Design: [pipeline/README.md](pipeline/README.md).
+
 # Router-weighted Expert Activation Pruning (REAP)
 
 ## Updates
